@@ -1453,8 +1453,8 @@ namespace ClassicUO.Game.UI.Gumps
 
             if (GumpsLoader.Instance.UseUOPGumps)
             {
-                p.X = 540;
-                p.Y = 180;
+                p.X = 528;
+                p.Y = 20;
             }
 
 
@@ -1470,6 +1470,8 @@ namespace ClassicUO.Game.UI.Gumps
                     0
                 ) { CanMove = true }
             );
+
+            Add(new GumpPic(p.X, p.Y, 9555, 0));
 
             _point = p;
         }

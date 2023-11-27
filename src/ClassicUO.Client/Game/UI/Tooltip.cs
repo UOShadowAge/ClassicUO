@@ -60,6 +60,11 @@ namespace ClassicUO.Game.UI
         {
             if (SerialHelper.IsValid(Serial) && World.OPL.TryGetRevision(Serial, out uint revision) && _hash != revision)
             {
+                if (Text != null && Text.Contains("Tree\nDurability") && ProfileManager.CurrentProfile.TreeToStumps)
+                {
+                    return false;
+                }
+
                 _hash = revision;
                 Text = ReadProperties(Serial, out _textHTML);
             }

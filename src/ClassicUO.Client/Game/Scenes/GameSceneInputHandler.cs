@@ -1048,6 +1048,13 @@ namespace ClassicUO.Game.Scenes
                     {
                         if (SerialHelper.IsMobile(obj.Serial) || obj is Item it && it.IsDamageable)
                         {
+
+                            if (ProfileManager.CurrentProfile.TreeToStumps && obj is Item itm && itm.IsDamageable)
+                            {
+                                return false;
+                            }
+
+
                             BaseHealthBarGump customgump = UIManager.GetGump<BaseHealthBarGump>(obj);
                             customgump?.Dispose();
 

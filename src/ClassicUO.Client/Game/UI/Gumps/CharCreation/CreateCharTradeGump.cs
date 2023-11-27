@@ -177,10 +177,15 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
                          .Where(s =>
                                      // All standard client versions ignore these skills by defualt
                                      //s.Index != 26 && // MagicResist
-                                     s.Index != 47 && // Stealth
-                                     s.Index != 48 && // RemoveTrap
-                                     s.Index != 54 && // Spellweaving
-                                     s.Index != 19 &&  // Archaeology
+                                     s.Name != "Stealth" && // Stealth
+                                     s.Name != "Remove Trap" && // RemoveTrap
+                                     s.Name != "Spellweaving" && // Spellweaving
+                                     s.Name != "Archaeology" &&  // Archaeology
+                                     s.Name != "Bushido" &&  // Bushido
+                                     s.Name != "Ninjitsu" &&  // Ninjitsu
+                                     s.Name != "Mysticism" &&  // Mysticism
+                                     s.Name != "Imbuing" &&  // Imbuing
+                                     s.Name != "Throwing" &&  // Throwing
                                      (character.Race == RaceType.GARGOYLE || s.Index != 57) // Throwing for gargoyle only
                                  )
 

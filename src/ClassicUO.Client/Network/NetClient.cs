@@ -57,7 +57,7 @@ namespace ClassicUO.Network
             if (IsConnected) return;
 
             _socket = new TcpClient();
-            _socket.NoDelay = true;
+            _socket.NoDelay = false;
 
             try
             {
