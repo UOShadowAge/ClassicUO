@@ -266,6 +266,39 @@ namespace ClassicUO.Network
             writer.Dispose();
         }
 
+        public static void Send_FirstLoginExtended(this NetClient socket, string user, string psw)
+        {
+            const byte ID = 0x81;
+
+            int length = PacketsTable.GetPacketLength(ID);
+
+            var writer = new StackDataWriter(length < 0 ? 64 : length);
+            writer.WriteUInt8(ID);
+
+            if (length < 0)
+            {
+                writer.WriteZero(2);
+            }
+
+            writer.WriteASCII(user);
+            writer.WriteASCII(psw);
+            writer.WriteUInt8(0xFF);
+
+            if (length < 0)
+            {
+                writer.Seek(1, SeekOrigin.Begin);
+                writer.WriteUInt16BE((ushort)writer.BytesWritten);
+            }
+            else
+            {
+                writer.WriteZero(length - writer.BytesWritten);
+            }
+
+            socket.Send(writer.BufferWritten);
+
+            writer.Dispose();
+        }
+
         public static void Send_SelectServer(this NetClient socket, byte index)
         {
             const byte ID = 0xA0;
