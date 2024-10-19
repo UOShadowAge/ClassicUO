@@ -41,7 +41,7 @@ namespace ClassicUO.Configuration
         public static Profile CurrentProfile { get; private set; }
         public static string ProfilePath { get; private set; }
 
-        public static void Load(string servername, string username, string charactername)
+        public static void Load(string servername, string accountname, string charactername)
         {
             string rootpath;
 
@@ -54,14 +54,14 @@ namespace ClassicUO.Configuration
                 rootpath = Settings.GlobalSettings.ProfilesPath;
             }
 
-            string path = FileSystemHelper.CreateFolderIfNotExists(rootpath, username, servername, charactername);
+            string path = FileSystemHelper.CreateFolderIfNotExists(rootpath, accountname, servername, charactername);
             string fileToLoad = Path.Combine(path, "profile.json");
 
             ProfilePath = path;
             CurrentProfile = ConfigurationResolver.Load<Profile>(fileToLoad, ProfileJsonContext.DefaultToUse) ?? new Profile();
 
-            CurrentProfile.Username = username;
             CurrentProfile.ServerName = servername;
+            CurrentProfile.AccountName = accountname;
             CurrentProfile.CharacterName = charactername;
 
             ValidateFields(CurrentProfile);
@@ -80,7 +80,7 @@ namespace ClassicUO.Configuration
                 throw new InvalidDataException();
             }
 
-            if (string.IsNullOrEmpty(profile.Username))
+            if (string.IsNullOrEmpty(profile.AccountName))
             {
                 throw new InvalidDataException();
             }

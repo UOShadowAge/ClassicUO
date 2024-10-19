@@ -159,6 +159,7 @@ namespace ClassicUO.Game.UI.Gumps
         private HSliderBar _soundsVolume, _musicVolume, _loginMusicVolume;
         private ClickableColorBox _speechColorPickerBox, _emoteColorPickerBox, _yellColorPickerBox, _whisperColorPickerBox, _partyMessageColorPickerBox, _guildMessageColorPickerBox, _allyMessageColorPickerBox, _chatMessageColorPickerBox, _partyAuraColorPickerBox;
         private InputField _spellFormatBox;
+        private Combobox _tooltip_align;
         private ClickableColorBox _tooltip_font_hue;
         private FontSelector _tooltip_font_selector;
         private HSliderBar _dragSelectStartX, _dragSelectStartY;
@@ -2246,6 +2247,24 @@ namespace ClassicUO.Game.UI.Gumps
             startX = 5 + 40;
             startY += text.Height + 2;
 
+            text = AddLabel(rightArea, ResGumps.TooltipAlignment, startX, startY);
+            startX += text.Width + 5;
+
+            _tooltip_align = AddCombobox
+            (
+                rightArea,
+                new[] { ResGumps.Left, ResGumps.Center, ResGumps.Right },
+                _currentProfile.TooltipAlignment,
+                startX,
+                startY,
+                100
+            );
+
+            startY += 5;
+
+            startX = 5 + 40;
+            startY += text.Height + 2;
+
             text = AddLabel(rightArea, ResGumps.TooltipBackgroundOpacity, startX, startY);
             startX += text.Width + 5;
 
@@ -3575,6 +3594,7 @@ namespace ClassicUO.Game.UI.Gumps
                     _delay_before_display_tooltip.Value = 200;
                     _tooltip_background_opacity.Value = 70;
                     _tooltip_zoom.Value = 100;
+                    _tooltip_align.SelectedIndex = 1;
                     _tooltip_font_selector.SetSelectedFont(1);
 
                     break;
@@ -4225,6 +4245,7 @@ namespace ClassicUO.Game.UI.Gumps
             _currentProfile.TooltipDelayBeforeDisplay = _delay_before_display_tooltip.Value;
             _currentProfile.TooltipBackgroundOpacity = _tooltip_background_opacity.Value;
             _currentProfile.TooltipDisplayZoom = _tooltip_zoom.Value;
+            _currentProfile.TooltipAlignment = (byte)_tooltip_align.SelectedIndex;
             _currentProfile.TooltipFont = _tooltip_font_selector.GetSelectedFont();
 
             _currentProfile?.Save(ProfileManager.ProfilePath);

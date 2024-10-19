@@ -236,13 +236,15 @@ namespace ClassicUO.Game.UI.Controls
             return GumpsLoader.Instance.PixelCheck(graphic, x, y);
         }
 
+        public ushort Hue { get; set; }
+
         public override bool Draw(UltimaBatcher2D batcher, int x, int y)
         {
             if (batcher.ClipBegin(x, y, Width, Height))
             {
                 Vector3 hueVector = ShaderHueTranslator.GetHueVector
                                     (
-                                        0,
+                                        Hue,
                                         false,
                                         Alpha,
                                         true

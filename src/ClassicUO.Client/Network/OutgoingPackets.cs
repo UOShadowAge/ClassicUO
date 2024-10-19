@@ -235,7 +235,7 @@ namespace ClassicUO.Network
 
         public static void Send_FirstLogin(this NetClient socket, string user, string psw)
         {
-            const byte ID = 0x80;
+            const byte ID = Constants.LOGIN_EXTENDED ? 0x81 : 0x80;
 
             int length = PacketsTable.GetPacketLength(ID);
 
@@ -247,8 +247,9 @@ namespace ClassicUO.Network
                 writer.WriteZero(2);
             }
 
-            writer.WriteASCII(user, 30);
+            writer.WriteASCII(user, Constants.LOGIN_EXTENDED ? Constants.LOGIN_EXTENDED_USERNAME_LENGTH : 30); // RFC 3696.3
             writer.WriteASCII(psw, 30);
+
             writer.WriteUInt8(0xFF);
 
             if (length < 0)
@@ -300,7 +301,7 @@ namespace ClassicUO.Network
 
         public static void Send_SecondLogin(this NetClient socket, string user, string psw, uint seed)
         {
-            const byte ID = 0x91;
+            const byte ID = Constants.LOGIN_EXTENDED ? 0x92 : 0x91;
 
             int length = PacketsTable.GetPacketLength(ID);
 
@@ -313,7 +314,7 @@ namespace ClassicUO.Network
             }
 
             writer.WriteUInt32BE(seed);
-            writer.WriteASCII(user, 30);
+            writer.WriteASCII(user, Constants.LOGIN_EXTENDED ? Constants.LOGIN_EXTENDED_USERNAME_LENGTH : 30); // RFC 3696.3
             writer.WriteASCII(psw, 30);
 
             if (length < 0)
@@ -393,8 +394,10 @@ namespace ClassicUO.Network
 
                 val = (byte) (val * 2 + (byte) (character.Flags.HasFlag(Flags.Female) ? 0x01 : 0x00));
             }
-
+            
             writer.WriteUInt8(val);
+            writer.WriteBool(character.IsHardcore );
+            writer.WriteBool(character.IsSoloSelfFound );
             writer.WriteUInt8((byte) character.Strength);
             writer.WriteUInt8((byte) character.Dexterity);
             writer.WriteUInt8((byte) character.Intelligence);
@@ -534,6 +537,38 @@ namespace ClassicUO.Network
             {
                 writer.Seek(1, SeekOrigin.Begin);
                 writer.WriteUInt16BE((ushort) writer.BytesWritten);
+            }
+            else
+            {
+                writer.WriteZero(length - writer.BytesWritten);
+            }
+
+            socket.Send(writer.BufferWritten);
+
+            writer.Dispose();
+        }
+
+        public static void Send_SelectAccount(this NetClient socket, uint index, string name)
+        {
+            const byte ID = 0xE9;
+
+            int length = PacketsTable.GetPacketLength(ID);
+
+            var writer = new StackDataWriter(length < 0 ? 64 : length);
+            writer.WriteUInt8(ID);
+
+            if (length < 0)
+            {
+                writer.WriteZero(2);
+            }
+
+            writer.WriteASCII(name, Constants.LOGIN_EXTENDED_USERNAME_LENGTH);
+            writer.WriteUInt32BE(index);
+
+            if (length < 0)
+            {
+                writer.Seek(1, SeekOrigin.Begin);
+                writer.WriteUInt16BE((ushort)writer.BytesWritten);
             }
             else
             {
@@ -2535,7 +2570,7 @@ namespace ClassicUO.Network
             }
 
             writer.WriteUInt8(0x01);
-            writer.WriteBool(true);
+            writer.WriteUInt8(0x01 | 0x02); // locations | names
 
             if (length < 0)
             {

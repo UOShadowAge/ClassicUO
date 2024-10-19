@@ -232,6 +232,12 @@ namespace ClassicUO.Game.UI.Gumps.Login
                 );
             }
 
+            if (loginScene.Servers.Length == 1)
+            {
+                int index = loginScene.GetServerIndexFromSettings();
+                loginScene.SelectServer((byte) loginScene.Servers[index].Index);
+            }
+
             AcceptKeyboardInput = true;
             CanCloseWithRightClick = false;
         }

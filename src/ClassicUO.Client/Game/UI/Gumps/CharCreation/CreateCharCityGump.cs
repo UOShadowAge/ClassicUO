@@ -77,13 +77,15 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
             _selectedProfession = profession;
 
             CityInfo city;
+            
+            Add(new GumpPic(0, 0, 192, 0));
 
             if (Client.Version >= ClientVersion.CV_70130)
             {
                 city = scene.GetCity(0);
             }
             else
-            {
+            {   
                 city = scene.GetCity(3);
 
                 if (city == null)
@@ -91,7 +93,7 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
                     city = scene.GetCity(0);
                 }
             }
-
+            
             if (city == null)
             {
                 Log.Error(ResGumps.NoCityFound);
@@ -106,7 +108,8 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
             {
                 map = city.Map;
             }
-
+            
+            
             _facetName = new Label
             (
                 "",
@@ -123,8 +126,8 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
 
             if (Client.Version >= ClientVersion.CV_70130)
             {
-                Add(new GumpPic(62, 54, (ushort) (0x15D9 + map), 0));
-                Add(new GumpPic(57, 49, 0x15DF, 0));
+                // Add(new GumpPic(62, 54, (ushort) (0x15D9 + map), 0));
+                // Add(new GumpPic(57, 49, 0x15DF, 0));
                 _facetName.Text = _cityNames[map];
             }
             else
@@ -132,31 +135,26 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
                 Add(new GumpPic(57, 49, 0x1598, 0));
                 _facetName.IsVisible = false;
             }
-
-            if (CUOEnviroment.IsOutlands)
-            {
-                _facetName.IsVisible = false;
-            }
+            
+            _facetName.IsVisible = false;
 
             Add(_facetName);
-
-
+            
             Add
             (
-                new Button((int) Buttons.PreviousScreen, 0x15A1, 0x15A3, 0x15A2)
+                new Button((int)Buttons.PreviousScreen, 180, 181, 182)
                 {
-                    X = 586,
-                    Y = 445,
+                    X = 32, Y = 895,
                     ButtonAction = ButtonAction.Activate
                 }
             );
 
             Add
             (
-                new Button((int) Buttons.Finish, 0x15A4, 0x15A6, 0x15A5)
+                new Button((int) Buttons.Finish, 193, 193, 193)
                 {
-                    X = 610,
-                    Y = 445,
+                    X = 580,
+                    Y = 819,
                     ButtonAction = ButtonAction.Activate
                 }
             );
@@ -164,14 +162,14 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
 
             _htmlControl = new HtmlControl
             (
-                452,
-                60,
-                175,
-                367,
-                true,
-                true,
-                ishtml: true,
-                text: city.Description
+                40,
+                250,
+                192,
+                465,
+                false,
+                false,
+                false,
+                city.Description, 1150, false, 0, false, FontStyle.Italic, TEXT_ALIGN_TYPE.TS_LEFT
             );
 
             Add(_htmlControl);
@@ -202,8 +200,23 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
                         cityFacet = 5;
                     }
 
-                    x = 62 + MathHelper.PercetangeOf(MapLoader.Instance.MapsDefaultSize[cityFacet, 0] - 2048, c.X, 383);
-                    y = 54 + MathHelper.PercetangeOf(MapLoader.Instance.MapsDefaultSize[cityFacet, 1], c.Y, 384);
+                    if (i == 0)
+                    {
+                        x = 866;
+                        y = 340;
+                    }
+                    else if (i == 1)
+                    {
+                        x = 350;
+                        y = 380;
+                    }
+                    else
+                    {
+                        x = 62 + MathHelper.PercetangeOf(MapLoader.Instance.MapsDefaultSize[cityFacet, 0] - 2048, c.X, 383);
+                        y = 54 + MathHelper.PercetangeOf(MapLoader.Instance.MapsDefaultSize[cityFacet, 1], c.Y, 384);
+                    }
+                    
+                    
                 }
                 else if (i < _townButtonsText.Length)
                 {
@@ -271,7 +284,7 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
             switch ((Buttons) buttonID)
             {
                 case Buttons.PreviousScreen:
-                    charCreationGump.StepBack(_selectedProfession > 0 ? 2 : 1);
+                    charCreationGump.SetStep(CharCreationGump.CharCreationStep.Appearence);
 
                     return;
 
@@ -327,11 +340,33 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
                     {
                         ButtonAction = ButtonAction.Activate,
                         X = x,
-                        Y = y
+                        Y = y,
+                        IsVisible = false
                     }
                 );
 
                 y -= 20;
+
+                if (index == 0)
+                {
+                    Add(new GumpPic(x - 70, y - 8, 162, 0)
+                    {
+                        Alpha = 0.7f,
+                        Width = 150,
+                        Height = 40
+                    });
+                }
+                else if (index == 1)
+                {
+                    Add(new GumpPic(x - 80, y - 8, 162, 0)
+                    {
+                        Alpha = 0.7f,
+                        Width = 130,
+                        Height = 40
+                    });
+                }
+                
+                
 
                 _label = new HoveredLabel
                 (
@@ -340,13 +375,15 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
                     0x0058,
                     0x0099,
                     0x0481,
-                    font: 3
+                    font: 0
                 )
                 {
                     X = x,
                     Y = y,
                     Tag = index
                 };
+
+                
 
                 if (_label.X + _label.Width >= 383)
                 {

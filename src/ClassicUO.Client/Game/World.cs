@@ -172,8 +172,9 @@ namespace ClassicUO.Game
         {
             if (ProfileManager.CurrentProfile == null)
             {
-                string lastChar = LastCharacterManager.GetLastCharacter(LoginScene.Account, World.ServerName);
-                ProfileManager.Load(World.ServerName, LoginScene.Account, lastChar);
+                string lastAccName = LastAccountManager.GetLastAccountSafe(LoginScene.Username, ServerName);
+                string lastChar = LastCharacterManager.GetLastCharacter(LoginScene.Username, ServerName, lastAccName);
+                ProfileManager.Load(ServerName, lastAccName, lastChar);
             }
 
             if (Player != null)

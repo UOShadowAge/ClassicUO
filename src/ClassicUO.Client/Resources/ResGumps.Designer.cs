@@ -457,15 +457,6 @@ namespace ClassicUO.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Time Until Bandage Applies (in seconds).
-        /// </summary>
-        public static string BandageTimer {
-            get {
-                return ResourceManager.GetString("BandageTimer", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Base.
         /// </summary>
         public static string Base {
@@ -579,6 +570,15 @@ namespace ClassicUO.Resources {
         public static string CellSize {
             get {
                 return ResourceManager.GetString("CellSize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Center.
+        /// </summary>
+        public static string Center {
+            get {
+                return ResourceManager.GetString("Center", resourceCulture);
             }
         }
         
@@ -966,15 +966,6 @@ namespace ClassicUO.Resources {
         public static string CriminalColor {
             get {
                 return ResourceManager.GetString("CriminalColor", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Time Being Criminal (in seconds).
-        /// </summary>
-        public static string CriminalTimer {
-            get {
-                return ResourceManager.GetString("CriminalTimer", resourceCulture);
             }
         }
         
@@ -1772,15 +1763,6 @@ namespace ClassicUO.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Heat Of Combat Time (in seconds).
-        /// </summary>
-        public static string HeatTimer {
-            get {
-                return ResourceManager.GetString("HeatTimer", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Help.
         /// </summary>
         public static string Help {
@@ -2318,6 +2300,15 @@ namespace ClassicUO.Resources {
         public static string LeaveTheParty {
             get {
                 return ResourceManager.GetString("LeaveTheParty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Left.
+        /// </summary>
+        public static string Left {
+            get {
+                return ResourceManager.GetString("Left", resourceCulture);
             }
         }
         
@@ -3288,6 +3279,15 @@ namespace ClassicUO.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Right.
+        /// </summary>
+        public static string Right {
+            get {
+                return ResourceManager.GetString("Right", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Roofs.
         /// </summary>
         public static string Roofs {
@@ -4106,6 +4106,15 @@ namespace ClassicUO.Resources {
         public static string Tooltip {
             get {
                 return ResourceManager.GetString("Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tooltip Align.
+        /// </summary>
+        public static string TooltipAlignment {
+            get {
+                return ResourceManager.GetString("TooltipAlignment", resourceCulture);
             }
         }
         

@@ -30,17 +30,11 @@
 
 #endregion
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json.Serialization;
-using System.Xml;
 using ClassicUO.Configuration;
-using ClassicUO.Game.Scenes;
-using ClassicUO.Resources;
-using ClassicUO.Utility.Logging;
 
 namespace ClassicUO.Game.Managers
 {
@@ -75,9 +69,9 @@ namespace ClassicUO.Game.Managers
             }
         }
 
-        public static void Save(string account, string server, string name)
+        public static void Save(string login, string server, string account, string name)
         {
-            LastCharacterInfo lastChar = LastCharacters.FirstOrDefault(c => c.AccountName.Equals(account) && c.ServerName == server);
+            LastCharacterInfo lastChar = LastCharacters.FirstOrDefault(c => c.LoginName == login && c.ServerName == server && c.AccountName == account);
 
             // Check to see if they passed in -lastcharactername but picked another character, clear override then
             if (!string.IsNullOrEmpty(LastCharacterNameOverride) && !LastCharacterNameOverride.Equals(name))
@@ -93,16 +87,17 @@ namespace ClassicUO.Game.Managers
             {
                 LastCharacters.Add(new LastCharacterInfo
                 {
+                    LoginName = login,
                     ServerName = server,
-                    LastCharacterName = name,
-                    AccountName = account
+                    AccountName = account,
+                    LastCharacterName = name
                 });
             }
 
             ConfigurationResolver.Save(LastCharacters, _lastCharacterFile, LastCharacterJsonContext.Default);
         }
 
-        public static string GetLastCharacter(string account, string server)
+        public static string GetLastCharacter(string login, string server, string account)
         {
             if (LastCharacters == null)
             {
@@ -115,7 +110,7 @@ namespace ClassicUO.Game.Managers
                 return LastCharacterNameOverride;
             }
 
-            LastCharacterInfo lastChar = LastCharacters.FirstOrDefault(c => c.AccountName.Equals(account) && c.ServerName == server);
+            LastCharacterInfo lastChar = LastCharacters.FirstOrDefault(c => c.LoginName == login && c.ServerName == server && c.AccountName == account);
 
             return lastChar != null ? lastChar.LastCharacterName : string.Empty;
         }
@@ -128,8 +123,9 @@ namespace ClassicUO.Game.Managers
 
     public class LastCharacterInfo
     {
-        public string AccountName { get; set; }
+        public string LoginName { get; set; }
         public string ServerName { get; set; }
+        public string AccountName { get; set; }
         public string LastCharacterName { get; set; }
     }
 }

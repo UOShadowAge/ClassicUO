@@ -46,11 +46,11 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
 {
     internal class CreateCharTradeGump : Gump
     {
-        private readonly HSliderBar[] _attributeSliders;
+        public readonly CustomHSliderBar[] _attributeSliders;
         private readonly PlayerMobile _character;
-        private readonly Combobox[] _skillsCombobox;
-        private readonly HSliderBar[] _skillSliders;
-        private readonly List<SkillEntry> _skillList;
+        public readonly CustomCombobox[] _skillsCombobox;
+        public readonly CustomHSliderBar[] _skillSliders;
+        public readonly List<SkillEntry> _skillList;
 
 
 
@@ -66,121 +66,101 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
                 skill.Lock = Lock.Locked;
             }
 
-            Add
-            (
-                new ResizePic(2600)
-                {
-                    X = 100, Y = 80, Width = 470, Height = 372
-                }
-            );
-
-            // center menu with fancy top
-            // public GumpPic(AControl parent, int x, int y, int gumpID, int hue)
-            Add(new GumpPic(291, 42, 0x0589, 0));
-            Add(new GumpPic(214, 58, 0x058B, 0));
-            Add(new GumpPic(300, 51, 0x15A9, 0));
-
             bool isAsianLang = string.Compare(Settings.GlobalSettings.Language, "CHT", StringComparison.InvariantCultureIgnoreCase) == 0 || 
                 string.Compare(Settings.GlobalSettings.Language, "KOR", StringComparison.InvariantCultureIgnoreCase) == 0 ||
                 string.Compare(Settings.GlobalSettings.Language, "JPN", StringComparison.InvariantCultureIgnoreCase) == 0;
 
             bool unicode = isAsianLang;
-            byte font = (byte)(isAsianLang ? 1 : 2);
-            ushort hue = (ushort)(isAsianLang ? 0xFFFF : 0x0386);
-
-            // title text
-            //TextLabelAscii(AControl parent, int x, int y, int font, int hue, string text, int width = 400)
-            Add
-            (
-                new Label(ClilocLoader.Instance.GetString(3000326), unicode, hue, font: font)
-                {
-                    X = 158, Y = 132
-                }
-            );
 
             // strength, dexterity, intelligence
             Add
             (
-                new Label(ClilocLoader.Instance.GetString(3000111), unicode, 1, font: 1)
+                new Label(ClilocLoader.Instance.GetString(3000303), unicode, 1150, font: 0)
                 {
-                    X = 158, Y = 170
+                    X = 462, Y = 580
                 }
             );
 
             Add
             (
-                new Label(ClilocLoader.Instance.GetString(3000112), unicode, 1, font: 1)
+                new Label(ClilocLoader.Instance.GetString(3000304), unicode, 1150, font: 0)
                 {
-                    X = 158, Y = 250
+                    X = 605, Y = 580
                 }
             );
 
             Add
             (
-                new Label(ClilocLoader.Instance.GetString(3000113), unicode, 1, font: 1)
+                new Label(ClilocLoader.Instance.GetString(3000305), unicode, 1150, font: 0)
                 {
-                    X = 158, Y = 330
+                    X = 750, Y = 580
                 }
             );
 
             // sliders for attributes
-            _attributeSliders = new HSliderBar[3];
+            _attributeSliders = new CustomHSliderBar[3];
 
             Add
             (
-                _attributeSliders[0] = new HSliderBar
+                _attributeSliders[0] = new CustomHSliderBar
                 (
-                    164,
-                    196,
-                    93,
+                    450,
+                    605,
+                    110,
                     10,
                     60,
-                    ProfessionInfo._VoidStats[0],
-                    HSliderBarStyle.MetalWidgetRecessedBar,
+                    profession.Name != "Custom" ? profession.StatsVal[0] : ProfessionInfo._VoidStats[0],
+                    CustomHSliderBarStyle.BlueWidgetNoBar,
                     true
                 )
+                {
+                    AcceptMouseInput = profession.Name == "Advanced"
+                }
             );
 
             Add
             (
-                _attributeSliders[1] = new HSliderBar
+                _attributeSliders[1] = new CustomHSliderBar
                 (
-                    164,
-                    276,
-                    93,
+                    590,
+                    605,
+                    110,
                     10,
                     60,
-                    ProfessionInfo._VoidStats[1],
-                    HSliderBarStyle.MetalWidgetRecessedBar,
+                    profession.Name != "Custom" ? profession.StatsVal[1] : ProfessionInfo._VoidStats[1],
+                    CustomHSliderBarStyle.BlueWidgetNoBar,
                     true
                 )
+                {
+                    AcceptMouseInput = profession.Name == "Advanced"
+                }
             );
 
             Add
             (
-                _attributeSliders[2] = new HSliderBar
+                _attributeSliders[2] = new CustomHSliderBar
                 (
-                    164,
-                    356,
-                    93,
+                    735,
+                    605,
+                    110,
                     10,
                     60,
-                    ProfessionInfo._VoidStats[2],
-                    HSliderBarStyle.MetalWidgetRecessedBar,
+                    profession.Name != "Advanced" ? profession.StatsVal[2] : ProfessionInfo._VoidStats[2],
+                    CustomHSliderBarStyle.BlueWidgetNoBar,
                     true
                 )
+                {
+                    AcceptMouseInput = profession.Name == "Advanced"
+                }
             );
 
             var clientFlags = World.ClientLockedFeatures.Flags;
 
-            _skillList = SkillsLoader.Instance.SortedSkills
+            _skillList = SkillsLoader.Instance.Skills
                          .Where(s =>
                                      // All standard client versions ignore these skills by defualt
                                      //s.Index != 26 && // MagicResist
-                                     s.Name != "Stealth" && // Stealth
-                                     s.Name != "Remove Trap" && // RemoveTrap
                                      s.Name != "Spellweaving" && // Spellweaving
-                                     s.Name != "Archaeology" &&  // Archaeology
                                      s.Name != "Bushido" &&  // Bushido
                                      s.Name != "Ninjitsu" &&  // Ninjitsu
                                      s.Name != "Mysticism" &&  // Mysticism
@@ -217,58 +197,179 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
 
             var skillNames = _skillList.Select(s => s.Name).ToArray();
 
-            int y = 172;
-            _skillSliders = new HSliderBar[CharCreationGump._skillsCount];
-            _skillsCombobox = new Combobox[CharCreationGump._skillsCount];
+            int y = 575;
+            _skillSliders = new CustomHSliderBar[CharCreationGump._skillsCount];
+            _skillsCombobox = new CustomCombobox[CharCreationGump._skillsCount];
 
-            for (int i = 0; i < CharCreationGump._skillsCount; i++)
-            {
-                Add
-                (
-                    _skillsCombobox[i] = new Combobox
-                    (
-                        344,
-                        y,
-                        182,
-                        skillNames,
-                        -1,
-                        200,
-                        false,
-                        "Click here"
-                    )
-                );
-
-                Add
-                (
-                    _skillSliders[i] = new HSliderBar
-                    (
-                        344,
-                        y + 32,
-                        93,
-                        0,
-                        50,
-                        ProfessionInfo._VoidSkills[i, 1],
-                        HSliderBarStyle.MetalWidgetRecessedBar,
-                        true
-                    )
-                );
-
-                y += 70;
-            }
-
+            
+            // Skills
+            
+            // 1
             Add
             (
-                new Button((int) Buttons.Prev, 0x15A1, 0x15A3, 0x15A2)
+                _skillsCombobox[0] = new CustomCombobox
+                (
+                    440,
+                    645,
+                    195,
+                    skillNames,
+                    profession.Name != "Advanced" ? profession.SkillDefVal[0, 0] : -1,
+                    200,
+                    true,
+                    $"Skill #1"
+                )
                 {
-                    X = 586, Y = 445, ButtonAction = ButtonAction.Activate
+                    AcceptMouseInput = profession.Name == "Advanced"
                 }
             );
 
             Add
             (
-                new Button((int) Buttons.Next, 0x15A4, 0x15A6, 0x15A5)
+                _skillSliders[0] = new CustomHSliderBar
+                (
+                    445,
+                    645 + 32,
+                    190,
+                    0,
+                    50,
+                    profession.Name != "Advanced" ? profession.SkillDefVal[0, 1] : ProfessionInfo._VoidSkills[0, 1],
+                    CustomHSliderBarStyle.BlueWidgetNoBar,
+                    true,
+                    0,
+                    0,
+                    true,
+                    false,
+                    true
+                )
                 {
-                    X = 610, Y = 445, ButtonAction = ButtonAction.Activate
+                    AcceptMouseInput = profession.Name == "Advanced"
+                }
+            );
+            
+            // 2
+            Add
+            (
+                _skillsCombobox[1] = new CustomCombobox
+                (
+                    655,
+                    645,
+                    192,
+                    skillNames,
+                    profession.Name != "Advanced" ? profession.SkillDefVal[1, 0] : -1,
+                    200,
+                    true,
+                    $"Skill #2"
+                )
+                {
+                    AcceptMouseInput = profession.Name == "Advanced",
+                    
+                }
+            );
+
+            Add
+            (
+                _skillSliders[1] = new CustomHSliderBar
+                (
+                    660,
+                    645 + 32,
+                    187,
+                    0,
+                    50,
+                    profession.Name != "Advanced" ? profession.SkillDefVal[1, 1] : ProfessionInfo._VoidSkills[1, 1],
+                    CustomHSliderBarStyle.BlueWidgetNoBar,
+                    true,
+                    0,
+                    0,
+                    true,
+                    false,
+                    true
+                )
+                {
+                    AcceptMouseInput = profession.Name == "Advanced"
+                }
+            );
+            
+            // 3
+            Add
+            (
+                _skillsCombobox[2] = new CustomCombobox
+                (
+                    440,
+                    710,
+                    195,
+                    skillNames,
+                    profession.Name != "Advanced" ? profession.SkillDefVal[2, 0] : -1,
+                    200,
+                    true,
+                    $"Skill #3"
+                )
+                {
+                    AcceptMouseInput = profession.Name == "Advanced",
+                }
+            );
+
+            Add
+            (
+                _skillSliders[2] = new CustomHSliderBar
+                (
+                    445,
+                    710 + 32,
+                    190,
+                    0,
+                    50,
+                    profession.Name != "Advanced" ? profession.SkillDefVal[2, 1] : ProfessionInfo._VoidSkills[2, 1],
+                    CustomHSliderBarStyle.BlueWidgetNoBar,
+                    true,
+                    0,
+                    0,
+                    true,
+                    false,
+                    true
+                )
+                {
+                    AcceptMouseInput = profession.Name == "Advanced"
+                }
+            );
+            
+            // 4
+            Add
+            (
+                _skillsCombobox[3] = new CustomCombobox
+                (
+                    655,
+                    710,
+                    192,
+                    skillNames,
+                    profession.Name != "Advanced" ? profession.SkillDefVal[3, 0] : -1,
+                    200,
+                    true,
+                    $"Skill #4"
+                )
+                {
+                    AcceptMouseInput = profession.Name == "Advanced"
+                }
+            );
+
+            Add
+            (
+                _skillSliders[3] = new CustomHSliderBar
+                (
+                    660,
+                    710 + 32,
+                    187,
+                    0,
+                    50,
+                    profession.Name != "Advanced" ? profession.SkillDefVal[3, 1] : ProfessionInfo._VoidSkills[3, 1],
+                    CustomHSliderBarStyle.BlueWidgetNoBar,
+                    true,
+                    0,
+                    0,
+                    true,
+                    false,
+                    true
+                )
+                {
+                    AcceptMouseInput = profession.Name == "Advanced"
                 }
             );
 
@@ -301,11 +402,6 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
 
             switch ((Buttons) buttonID)
             {
-                case Buttons.Prev:
-                    charCreationGump.StepBack();
-
-                    break;
-
                 case Buttons.Next:
 
                     if (ValidateValues())

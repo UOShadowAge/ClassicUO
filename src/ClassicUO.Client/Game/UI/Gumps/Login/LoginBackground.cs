@@ -30,74 +30,127 @@
 
 #endregion
 
+using System.IO;
 using ClassicUO.Game.UI.Controls;
+using ClassicUO.Renderer;
+using ClassicUO.Resources;
 using ClassicUO.Utility;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace ClassicUO.Game.UI.Gumps.Login
 {
-    internal class LoginBackground : Gump
+        internal class LoginBackground : Gump
     {
+        private static Texture2D _imageTexture;
+
+        private static Texture2D ImageTexture
+        {
+            get
+            {
+                if (_imageTexture == null || _imageTexture.IsDisposed)
+                {
+                    using var stream = new MemoryStream(Loader.GetLoginBackgroundImage().ToArray());
+                    _imageTexture = Texture2D.FromStream(Client.Game.GraphicsDevice, stream);
+                }
+
+                return _imageTexture;
+            }
+        }
+
+        private static Texture2D _overlayTexture;
+
+        private static Texture2D OverlayTexture
+        {
+            get
+            {
+                if (_overlayTexture == null || _overlayTexture.IsDisposed)
+                {
+                    using var stream = new MemoryStream(Loader.GetLoginBackgroundImage().ToArray());
+                    _overlayTexture = Texture2D.FromStream(Client.Game.GraphicsDevice, stream);
+                }
+
+                return _overlayTexture;
+            }
+        }
+
+        private Rectangle _imageSource, _imageDest;
+        private Rectangle _overlaySource, _overlayDest;
+
+        private float _animTime;
+
         public LoginBackground() : base(0, 0)
         {
-            if (Client.Version >= ClientVersion.CV_706400)
-            {
-                // Background
-                Add
-                (
-                    new GumpPicTiled
-                    (
-                        0,
-                        0,
-                        640,
-                        480,
-                        0x0150
-                    ) { AcceptKeyboardInput = false }
-                );
-
-                // UO Flag
-                Add(new GumpPic(0, 4, 0x0151, 0) { AcceptKeyboardInput = false });
-            }
-            else
-            {
-                // Background
-                Add
-                (
-                    new GumpPicTiled
-                    (
-                        0,
-                        0,
-                        640,
-                        480,
-                        0x0E14
-                    ) { AcceptKeyboardInput = false }
-                );
-
-                // Border
-                Add(new GumpPic(0, 0, 0x157C, 0) { AcceptKeyboardInput = false });
-                // UO Flag
-                Add(new GumpPic(0, 4, 0x15A0, 0) { AcceptKeyboardInput = false });
-
-                // Quit Button
-                Add
-                (
-                    new Button(0, 0x1589, 0x158B, 0x158A)
-                    {
-                        X = 555,
-                        Y = 4,
-                        ButtonAction = ButtonAction.Activate,
-                        AcceptKeyboardInput = false
-                    }
-                );
-            }
-
+            Width = 1280;
+            Height = 960;
 
             CanCloseWithEsc = false;
             CanCloseWithRightClick = false;
             AcceptKeyboardInput = false;
 
             LayerOrder = UILayer.Under;
+
+            _imageSource.Width = Width;
+            _imageSource.Height = Height;
+            _imageDest.Width = Width;
+            _imageDest.Height = Height;
+
+            _overlaySource.Width = Width;
+            _overlaySource.Height = Height;
+            _overlayDest.Width = Width;
+            _overlayDest.Height = Height;
+            
+            // Quit Button
+            Add
+            (
+                new Button(0, 1482, 1481, 1480)
+                {
+                    X = 1197,
+                    Y = 41,
+                    ButtonAction = ButtonAction.Activate,
+                    AcceptKeyboardInput = false
+                }
+            );
         }
 
+        public override void Update()
+        {
+            if (IsDisposed)
+            {
+                return;
+            }
+
+            base.Update();
+
+            if (_animTime < Time.Ticks)
+            {
+                _animTime = Time.Ticks + 60f;
+
+                if (_overlayTexture != null)
+                {
+                    _overlaySource.X = _overlaySource.Right % _overlayTexture.Width;
+                }
+            }
+        }
+
+        public override bool Draw(UltimaBatcher2D batcher, int x, int y)
+        {
+            Vector3 hueVector = Vector3.UnitZ;
+
+            var imageDest = _imageDest;
+            var overlayDest = _overlayDest;
+
+            imageDest.Offset(x, y);
+            overlayDest.Offset(x, y);
+
+            batcher.DrawTiled(ImageTexture, imageDest, _imageSource, hueVector);
+
+            hueVector.Z = RandomHelper.GetValue(70, 80) / 100.0f;
+
+            batcher.DrawTiled(OverlayTexture, overlayDest, _overlaySource, hueVector);
+
+            return base.Draw(batcher, x, y);
+        }
 
         public override void OnButtonClick(int buttonID)
         {

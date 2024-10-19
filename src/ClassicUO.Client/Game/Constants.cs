@@ -39,6 +39,8 @@ namespace ClassicUO.Game
         public const int MIN_FPS = 12;
         public const int MAX_FPS = 250;
         public const int LOGIN_SCREEN_FPS = 60;
+        public const bool LOGIN_EXTENDED = true;
+        public const int LOGIN_EXTENDED_USERNAME_LENGTH = 320; // RFC 3696.3
 
         public const int CHARACTER_ANIMATION_DELAY = 80;
         public const int ITEM_EFFECT_ANIMATION_DELAY = 50;

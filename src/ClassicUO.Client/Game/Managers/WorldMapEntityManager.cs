@@ -181,10 +181,7 @@ namespace ClassicUO.Game.Managers
 
         public void Remove(uint serial)
         {
-            if (Entities.ContainsKey(serial))
-            {
-                Entities.Remove(serial);
-            }
+            Entities.Remove(serial);
         }
 
         public void RemoveUnupdatedWEntity()
@@ -235,7 +232,7 @@ namespace ClassicUO.Game.Managers
             {
                 //GameActions.Print($"SENDING PACKET! {Time.Ticks}");
 
-                _lastPacketSend = Time.Ticks + 250;
+                _lastPacketSend = Time.Ticks + 1000;
 
                 //if (!force && !_can_send)
                 //{

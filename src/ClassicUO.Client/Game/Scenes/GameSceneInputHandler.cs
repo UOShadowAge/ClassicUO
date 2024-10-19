@@ -713,23 +713,24 @@ namespace ClassicUO.Game.Scenes
 
                     case Entity ent:
 
-                        if (Keyboard.Alt && ent is Mobile)
-                        {
-                            MessageManager.HandleMessage
-                            (
-                                World.Player,
-                                ResGeneral.NowFollowing,
-                                string.Empty,
-                                0,
-                                MessageType.Regular,
-                                3,
-                                TextType.CLIENT
-                            );
-
-                            _followingMode = true;
-                            _followingTarget = ent;
-                        }
-                        else if (!DelayedObjectClickManager.IsEnabled)
+                        // if (Keyboard.Alt && ent is Mobile)
+                        // {
+                        //     MessageManager.HandleMessage
+                        //     (
+                        //         World.Player,
+                        //         ResGeneral.NowFollowing,
+                        //         string.Empty,
+                        //         0,
+                        //         MessageType.Regular,
+                        //         3,
+                        //         TextType.CLIENT
+                        //     );
+                        //
+                        //     _followingMode = true;
+                        //     _followingTarget = ent;
+                        // }
+                        // else
+                        if (!DelayedObjectClickManager.IsEnabled)
                         {
                             DelayedObjectClickManager.Set(ent.Serial, Mouse.Position.X, Mouse.Position.Y, Time.Ticks + Mouse.MOUSE_DELAY_DOUBLE_CLICK);
                         }

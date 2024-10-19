@@ -13,5 +13,8 @@ namespace ClassicUO.Resources
 
         [EmbedResourceCSharp.FileEmbed("game-background.png")]
         public static partial ReadOnlySpan<byte> GetBackgroundImage();
+        
+        [EmbedResourceCSharp.FileEmbed("character-select.png")]
+        public static partial ReadOnlySpan<byte> GetLoginBackgroundImage();
     }
 }
