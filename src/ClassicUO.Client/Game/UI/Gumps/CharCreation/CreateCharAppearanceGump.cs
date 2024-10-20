@@ -40,9 +40,12 @@ using ClassicUO.Game.Managers;
 using ClassicUO.Game.UI.Controls;
 using ClassicUO.Input;
 using ClassicUO.Assets;
+using ClassicUO.Game.Scenes;
 using ClassicUO.Renderer;
+using ClassicUO.Resources;
 using ClassicUO.Utility;
 using ClassicUO.Renderer.Gumps;
+using Microsoft.Xna.Framework;
 
 namespace ClassicUO.Game.UI.Gumps.CharCreation
 {
@@ -52,209 +55,392 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
         {
             public bool IsFemale;
             public RaceType Race;
+            public bool IsHardcore;
+            public bool IsSoloSelfFound;
         }
 
         private PlayerMobile _character;
         private CharacterInfo _characterInfo;
         private readonly Button _humanRadio, _elfRadio, _gargoyleRadio;
+        private readonly Button _hairSelect, _beardSelect, _shirtSelect, _pantsSelect;
         private readonly Button _maleRadio, _femaleRadio;
-        private Combobox _hairCombobox, _facialCombobox;
-        private Label _hairLabel, _facialLabel;
+        private readonly Checkbox _hardcoreCheckbox, _soloSelfFoundCheckbox;
+        private ProgressSlider _hairSlider, _beardSlider, _skinSlider;
+        private CustomColorTablePicker _colorTablePicker;
         private readonly StbTextBox _nameTextBox;
         private PaperDollInteractable _paperDoll;
-        private readonly Button _nextButton;
+        private ProfessionInfoGump[] _professionInfoGumps = new ProfessionInfoGump[10]; // Stores all profession info   
+        private readonly Button _CreateButton;
+        private GumpPic _selectedProfessionGump;
+        private CreateCharTradeGump _createCharTradeGump;
         private readonly Dictionary<Layer, Tuple<int, ushort>> CurrentColorOption = new Dictionary<Layer, Tuple<int, ushort>>();
-        private readonly Dictionary<Layer, int> CurrentOption = new Dictionary<Layer, int>
+        public Dictionary<Layer, int> CurrentOption = new Dictionary<Layer, int>
         {
-            {
-                Layer.Hair, 1
-            },
-            {
-                Layer.Beard, 0
-            }
+            { Layer.Hair, 1 },
+            { Layer.Beard, 0 },
+            { Layer.Invalid, 0 }
         };
 
         public CreateCharAppearanceGump(World world) : base(world, 0, 0)
         {
+            // Background
             Add
             (
-                new ResizePic(0x0E10)
+                new GumpPic(0, 0, 159, 0)
                 {
-                    X = 82, Y = 125, Width = 151, Height = 310
-                },
-                1
+                    Height = 960,
+                    Width = 1280,
+                    AcceptKeyboardInput = false
+                }
             );
 
-            Add(new GumpPic(280, 53, 0x0709, 0), 1);
-            Add(new GumpPic(240, 73, 0x070A, 0), 1);
+            // Male / Female Button Background
+
+            // // Male
+            // Add
+            // (
+            //     new GumpPic(480, 325, 170, 0)
+            //     {
+            //         AcceptKeyboardInput = false
+            //     }
+            // );
+            //
+            // // Female
+            // Add
+            // (
+            //     new GumpPic(600, 325, 172, 0)
+            //     {
+            //         AcceptKeyboardInput = false
+            //     }
+            // );
+            //
+            // Add
+            // (
+            //     new GumpPic(800, 325, 173, 0)
+            //     {
+            //         AcceptKeyboardInput = false
+            //     }
+            // );
+
+            // Add
+            // (
+            //     new ResizePic(0x0E10)
+            //     {
+            //         X = 82, Y = 125, Width = 151, Height = 310
+            //     },
+            //     1
+            // );
+
+            // Add(new GumpPic(280, 53, 0x0709, 0), 1);
+            // Add(new GumpPic(240, 73, 0x070A, 0), 1);
+            //
+            // Add
+            // (
+            //     new GumpPicTiled
+            //     (
+            //         248,
+            //         73,
+            //         215,
+            //         16,
+            //         0x070B
+            //     ),
+            //     1
+            // );
+
+            // Add(new GumpPic(463, 73, 0x070C, 0), 1);
+            // Add(new GumpPic(238, 98, 0x0708, 0), 1);
+            //
+            // Add
+            // (
+            //     new ResizePic(0x0E10)
+            //     {
+            //         X = 475, Y = 125, Width = 151, Height = 310
+            //     },
+            //     1
+            // );
+
+            // // Male/Female Radios
+            // Add
+            // (
+            //     _maleRadio = new Button((int)Buttons.MaleButton, 0x0768, 0x0767)
+            //     {
+            //          X = 160, Y = 455, ButtonAction = ButtonAction.Activate
+            //     },
+            //     1
+            // );
 
             Add
             (
-                new GumpPicTiled
-                (
-                    248,
-                    73,
-                    215,
-                    16,
-                    0x070B
-                ),
-                1
+                _femaleRadio = new Button((int)Buttons.FemaleButton, 172, 173)
+                {
+                    X = 781,
+                    Y = 300,
+                    ButtonAction = ButtonAction.Activate,
+                    Alpha = 0
+                }, 1
             );
 
-            Add(new GumpPic(463, 73, 0x070C, 0), 1);
-            Add(new GumpPic(238, 98, 0x0708, 0), 1);
-
             Add
             (
-                new ResizePic(0x0E10)
+                _maleRadio = new Button((int)Buttons.MaleButton, 172, 173)
                 {
-                    X = 475, Y = 125, Width = 151, Height = 310
-                },
-                1
-            );
-
-            // Male/Female Radios
-            Add
-            (
-                _maleRadio = new Button((int)Buttons.MaleButton, 0x0768, 0x0767)
-                {
-                    X = 425, Y = 435, ButtonAction = ButtonAction.Activate
-                },
-                1
+                    IsClicked = true,
+                    X = 460,
+                    Y = 300,
+                    ButtonAction = ButtonAction.Activate,
+                    Alpha = 0.45f
+                }, 1
             );
 
             Add
             (
-                _femaleRadio = new Button((int)Buttons.FemaleButton, 0x0768, 0x0767)
+                _hairSelect = new Button((int)Buttons.HairButton, 175, 175)
                 {
-                    X = 425, Y = 455, ButtonAction = ButtonAction.Activate
-                },
-                1
+                    X = 896,
+                    Y = 475,
+                    ButtonAction = ButtonAction.Activate,
+                    Alpha = .55f,
+                    Width = 64,
+                    Height = 54
+                }, 1
             );
 
             Add
             (
-                new Button((int) Buttons.MaleButton, 0x0710, 0x0712, 0x0711)
+                _beardSelect = new Button((int)Buttons.BeardButton, 175, 175)
                 {
-                    X = 445, Y = 435, ButtonAction = ButtonAction.Activate
-                },
-                1
+                    X = 963,
+                    Y = 475,
+                    ButtonAction = ButtonAction.Activate,
+                    Alpha = 0,
+                    Width = 64,
+                    Height = 54
+                }, 1
             );
 
             Add
             (
-                new Button((int) Buttons.FemaleButton, 0x070D, 0x070F, 0x070E)
+                _shirtSelect = new Button((int)Buttons.ShirtButton, 175, 175)
                 {
-                    X = 445, Y = 455, ButtonAction = ButtonAction.Activate
-                },
-                1
+                    X = 1029,
+                    Y = 475,
+                    ButtonAction = ButtonAction.Activate,
+                    Alpha = 0,
+                    Width = 64,
+                    Height = 54
+                }, 1
+            );
+            
+            Add
+            (
+                _pantsSelect = new Button((int)Buttons.PantsButton, 175, 175)
+                {
+                    X = 1097,
+                    Y = 475,
+                    ButtonAction = ButtonAction.Activate,
+                    Alpha = 0,
+                    Width = 64,
+                    Height = 54
+                }, 1
+            );
+
+
+            Add
+            (
+                _hardcoreCheckbox = new Checkbox(150, 151, "")
+                {
+                    X = 224,
+                    Y = 894
+                }, 1
+            );
+            
+            Add
+            (
+                _soloSelfFoundCheckbox = new Checkbox(148, 149, "")
+                {
+                    X = 1033,
+                    Y = 893
+                }, 1
             );
 
             Add
             (
-                _nameTextBox = new StbTextBox
-                (
-                    5,
-                    16,
-                    200,
-                    false,
-                    hue: 1,
-                    style: FontStyle.Fixed
-                )
+                _CreateButton = new Button((int)Buttons.Next, 171, 171, 171)
                 {
-                    X = 257, Y = 65, Width = 200, Height = 20
+                    X = 559,
+                    Y = 793,
+                    ButtonAction = ButtonAction.Activate
+                }, 1
+            );
+
+            _CreateButton.Alpha = _CreateButton.IsEnabled ? 1 : 0.25f;
+
+
+            Add
+            (
+                _nameTextBox = new StbTextBox(0, 16, 200, false, hue: 33, style: FontStyle.Fixed, align: TEXT_ALIGN_TYPE.TS_CENTER)
+                {
+                    X = 546,
+                    Y = 234,
+                    Width = 200,
+                    Height = 22
                     //ValidationRules = (uint) (TEXT_ENTRY_RULES.LETTER | TEXT_ENTRY_RULES.SPACE)
-                },
-                1
+                }, 1
             );
 
-            // Races
-            Add
-            (
-                _humanRadio = new Button((int)Buttons.HumanButton, 0x0768, 0x0767)
-                {
-                    X = 180, Y = 435, ButtonAction = ButtonAction.Activate
-                },
-                1
-            );
+            // // Races
+            // Add
+            // (
+            //     _humanRadio = new Button((int)Buttons.HumanButton, 0x0768, 0x0767)
+            //     {
+            //         X = 180, Y = 435, ButtonAction = ButtonAction.Activate
+            //     },
+            //     1
+            // );
 
-            Add
-            (
-                new Button((int) Buttons.HumanButton, 0x0702, 0x0704, 0x0703)
-                {
-                    X = 200, Y = 435, ButtonAction = ButtonAction.Activate
-                },
-                1
-            );
+            //Add
+            //(
+            //    new Button((int) Buttons.HumanButton, 0x0702, 0x0704, 0x0703)
+            //    {
+            //        X = 200, Y = 435, ButtonAction = ButtonAction.Activate
+            //    },
+            //    1
+            //);
 
-            Add
-            (
-                _elfRadio = new Button((int)Buttons.ElfButton, 0x0768, 0x0767, 0x0768)
-                {
-                    X = 180, Y = 455, ButtonAction = ButtonAction.Activate
-                },
-                1
-            );
+            //Add
+            //(
+            //    _elfRadio = new Button((int)Buttons.ElfButton, 0x0768, 0x0767, 0x0768)
+            //    {
+            //        X = 180, Y = 455, ButtonAction = ButtonAction.Activate
+            //    },
+            //    1
+            //);
 
-            Add
-            (
-                new Button((int) Buttons.ElfButton, 0x0705, 0x0707, 0x0706)
-                {
-                    X = 200, Y = 455, ButtonAction = ButtonAction.Activate
-                },
-                1
-            );
+            //Add
+            //(
+            //    new Button((int) Buttons.ElfButton, 0x0705, 0x0707, 0x0706)
+            //    {
+            //        X = 200, Y = 455, ButtonAction = ButtonAction.Activate
+            //    },
+            //    1
+            //);
 
-            if (Client.Game.UO.Version >= ClientVersion.CV_60144)
-            {
-                Add
-                (
-                    _gargoyleRadio = new Button((int)Buttons.GargoyleButton, 0x0768, 0x0767)
-                    {
-                        X = 60, Y = 435, ButtonAction = ButtonAction.Activate
-                    },
-                    1
-                );
+            //if (Client.Version >= ClientVersion.CV_60144)
+            //{
+            //    Add
+            //    (
+            //        _gargoyleRadio = new Button((int)Buttons.GargoyleButton, 0x0768, 0x0767)
+            //        {
+            //            X = 60, Y = 435, ButtonAction = ButtonAction.Activate
+            //        },
+            //        1
+            //    );
 
-                Add
-                (
-                    new Button((int) Buttons.GargoyleButton, 0x07D3, 0x07D5, 0x07D4)
-                    {
-                        X = 80, Y = 435, ButtonAction = ButtonAction.Activate
-                    },
-                    1
-                );
-            }
-
-            // Prev/Next
-            Add
-            (
-                new Button((int) Buttons.Prev, 0x15A1, 0x15A3, 0x15A2)
-                {
-                    X = 586, Y = 445, ButtonAction = ButtonAction.Activate
-                },
-                1
-            );
+            //    Add
+            //    (
+            //        new Button((int) Buttons.GargoyleButton, 0x07D3, 0x07D5, 0x07D4)
+            //        {
+            //            X = 80, Y = 435, ButtonAction = ButtonAction.Activate
+            //        },
+            //        1
+            //    );
+            //}
 
             Add
             (
-                _nextButton = new Button((int) Buttons.Next, 0x15A4, 0x15A6, 0x15A5)
+                new Button((int)Buttons.Prev, 180, 181, 182)
                 {
-                    X = 610, Y = 445, ButtonAction = ButtonAction.Activate
-                },
-                1
+                    X = 32,
+                    Y = 895,
+                    ButtonAction = ButtonAction.Activate
+                }, 1
             );
 
-            _maleRadio.IsClicked = true;
-            _humanRadio.IsClicked = true;
+            // _maleRadio.IsClicked = true;
+            //_humanRadio.IsClicked = true;
             _characterInfo.IsFemale = false;
             _characterInfo.Race = RaceType.HUMAN;
 
-            HandleGenreChange();
+            _characterInfo.IsHardcore = _hardcoreCheckbox.IsChecked;
+            _characterInfo.IsSoloSelfFound = _soloSelfFoundCheckbox.IsChecked;
+
+            CreateCharacter(_characterInfo.IsFemale, _characterInfo.Race, _characterInfo.IsHardcore, _characterInfo.IsSoloSelfFound);
             HandleRaceChanged();
+            HandleProfessions();
         }
 
-        private void CreateCharacter(bool isFemale, RaceType race)
+        private void HandleProfessions()
+        {
+            var professions = new List<ProfessionInfo>(ProfessionLoader.Instance.Professions.Keys);
+            
+            for (int i = 0; i < professions.Count; i++)
+            {
+                if (_professionInfoGumps[i] == null)
+                {
+                    Add
+                    (
+                        _professionInfoGumps[i] = new ProfessionInfoGump(professions[i])
+                        {
+                            X = 144,
+                            Y = 136 + 69 * i,
+
+                            Selected = SelectProfession
+                        }
+                    );
+                }
+                else
+                {
+                    if (_character != null && _character.Profession == professions[i])
+                    {
+
+                        if (_selectedProfessionGump != null)
+                        {
+                            _selectedProfessionGump.X = 135;
+                            _selectedProfessionGump.Y = 133 + 69 * i;
+                        }
+                        else
+                        {
+                            Add(_selectedProfessionGump = new GumpPic(135, 133 + 69 * i, 179, 0));
+                        }
+                    }
+                }
+            }
+        }
+        
+        public void SelectProfession(ProfessionInfo info)
+        {
+            if (info.Type == ProfessionLoader.PROF_TYPE.CATEGORY && ProfessionLoader.Instance.Professions.TryGetValue(info, out List<ProfessionInfo> list) && list != null)
+            {
+                Parent.Add(new CreateCharProfessionGump(info));
+                Parent.Remove(this);
+            }
+            else
+            {
+                CharCreationGump charCreationGump = UIManager.GetGump<CharCreationGump>();
+                charCreationGump.SetCharacter(_character);
+
+                charCreationGump?.SetProfession(info);
+                _character.Profession = info;
+                DisplayProfessionInfo(info);
+            }
+
+            HandleProfessions();
+        }
+
+        public void DisplayProfessionInfo(ProfessionInfo info)
+        {
+            if (_createCharTradeGump == null)
+            {
+                Add( _createCharTradeGump = new CreateCharTradeGump(_character, info));
+            }
+            else
+            {
+                _createCharTradeGump.Clear();
+                Add( _createCharTradeGump = new CreateCharTradeGump(_character, info));
+            }
+        }
+
+        private void CreateCharacter(bool isFemale, RaceType race, bool isHardcore = false, bool isSoloSelfFound = false)
         {
             if (_character == null)
             {
@@ -268,7 +454,7 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
             {
                 LinkedObject next = first.Next;
 
-                World.RemoveItem((Item) first, true);
+                World.RemoveItem((Item)first, true);
 
                 first = next;
             }
@@ -276,6 +462,23 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
             _character.Clear();
             _character.Race = race;
             _character.IsFemale = isFemale;
+            _character.IsHardcore = isHardcore;
+            _character.IsSoloSelfFound = isSoloSelfFound;
+            
+            if (_paperDoll != null)
+            {
+                Remove(_paperDoll);
+            }
+            
+            Add
+            (
+                _paperDoll = new PaperDollInteractable(518, 235, _character, null, 375, 350)
+                {
+                    AcceptMouseInput = false,
+                }, 1
+            );
+
+            _paperDoll.RequestUpdate();
 
             if (isFemale)
             {
@@ -285,11 +488,63 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
             {
                 _character.Flags &= ~Flags.Female;
             }
+            
+            // Skin
+            ushort[] pallet = CharacterCreationValues.GetSkinPallet(race);
+            var defaultSkinIndex = RandomHelper.GetValue(0, pallet.Length - 1);
+            CurrentOption[Layer.Invalid] = defaultSkinIndex;
+            CurrentColorOption[Layer.Invalid] = new Tuple<int, ushort>(defaultSkinIndex, pallet[defaultSkinIndex]);
+            _character.Hue = pallet[defaultSkinIndex];
+
+            Add(_skinSlider = new ProgressSlider(this, 448, 77, pallet.Length, Layer.Invalid, race, _character, CurrentOption[Layer.Invalid]));
+            _skinSlider.OnOptionSelected += Skin_OnOptionSelected;
+
+
+            // Hair
+            CharacterCreationValues.ComboContent content = CharacterCreationValues.GetHairComboContent(_characterInfo.IsFemale, race);
+            var randomHair = RandomHelper.GetValue(0, content.Labels.Length - 1);
+            pallet = CharacterCreationValues.GetCustomHairPallet();
+            var randomHairHue = RandomHelper.GetValue(0, pallet.Length - 1);
+
+            
+            CurrentColorOption[Layer.Hair] = new Tuple<int, ushort>(randomHairHue, pallet[randomHairHue]);
+            CurrentOption[Layer.Hair] = randomHair;
+            
+            Add(_hairSlider = new ProgressSlider(this, 448, 109, content.Labels.Length, Layer.Hair, race, _character, CurrentOption[Layer.Hair]));
+            _hairSlider.OnOptionSelected += Hair_OnOptionSelected;
+            AddCustomColorPickerTable(918, 575, pallet, Layer.Hair, 11, 8);
+
+            // Beard
+            if (!_characterInfo.IsFemale && race != RaceType.ELF)
+            {
+                content = CharacterCreationValues.GetFacialHairComboContent(race);
+                var randomBeard = RandomHelper.GetValue(0, content.Labels.Length - 1);
+                var randomBeardHue = RandomHelper.GetValue(0, pallet.Length - 1);
+
+                CurrentColorOption[Layer.Beard] = new Tuple<int, ushort>(randomBeardHue, pallet[randomBeardHue]);
+                CurrentOption[Layer.Beard] = randomBeard;
+                
+                Add(_beardSlider = new ProgressSlider(this, 448, 142, content.Labels.Length, Layer.Beard, race, _character, CurrentOption[Layer.Beard]));
+                _beardSlider.OnOptionSelected += Facial_OnOptionSelected;
+            }
+            
+            // Shirt
+            pallet = CharacterCreationValues.GetCustomClothesPallet();
+            var randomShirt = RandomHelper.GetValue(0, pallet.Length - 1);
+            CurrentOption[Layer.Shirt] = randomShirt;
+            CurrentColorOption[Layer.Shirt] = new Tuple<int, ushort>(randomShirt, pallet[randomShirt]);
+            
+            // Pants
+            pallet = CharacterCreationValues.GetCustomClothesPallet();
+            var randomPants = RandomHelper.GetValue(0, pallet.Length - 1);
+            CurrentOption[Layer.Pants] = randomPants;
+            CurrentColorOption[Layer.Pants] = new Tuple<int, ushort>(randomPants, pallet[randomPants]);
+
 
             switch (race)
             {
                 case RaceType.GARGOYLE:
-                    _character.Graphic = isFemale ? (ushort) 0x029B : (ushort) 0x029A;
+                    _character.Graphic = isFemale ? (ushort)0x029B : (ushort)0x029A;
 
                     Item it = CreateItem(0x4001, CurrentColorOption[Layer.Shirt].Item2, Layer.Robe);
 
@@ -340,7 +595,7 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
 
                         _character.PushToBack(it);
 
-                        it = CreateItem(0x1518, CurrentColorOption[Layer.Shirt].Item2, Layer.Shirt);
+                        it = CreateItem(0x1EFD, CurrentColorOption[Layer.Shirt].Item2, Layer.Shirt);
 
                         _character.PushToBack(it);
                     }
@@ -350,11 +605,11 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
                         it = CreateItem(0x1710, 0x0384, Layer.Shoes);
                         _character.PushToBack(it);
 
-                        it = CreateItem(0x152F, CurrentColorOption[Layer.Pants].Item2, Layer.Pants);
+                        it = CreateItem(0x1539, CurrentColorOption[Layer.Pants].Item2, Layer.Pants);
 
                         _character.PushToBack(it);
 
-                        it = CreateItem(0x1518, CurrentColorOption[Layer.Shirt].Item2, Layer.Shirt);
+                        it = CreateItem(0x1EFD, CurrentColorOption[Layer.Shirt].Item2, Layer.Shirt);
 
                         _character.PushToBack(it);
                     }
@@ -362,38 +617,160 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
                     break;
                 }
             }
-        }
-
-        private void UpdateEquipments()
-        {
-            RaceType race = _characterInfo.Race;
+            
             Layer layer;
-            CharacterCreationValues.ComboContent content;
-
-            _character.Hue = CurrentColorOption[Layer.Invalid].Item2;
-
+            
             if (!_characterInfo.IsFemale && race != RaceType.ELF)
             {
                 layer = Layer.Beard;
                 content = CharacterCreationValues.GetFacialHairComboContent(race);
 
-                Item iti = CreateItem(content.GetGraphic(CurrentOption[layer]), CurrentColorOption[layer].Item2, layer);
+                Item beard = CreateItem(content.GetGraphic(CurrentOption[layer]), CurrentColorOption[layer].Item2, layer);
 
-                _character.PushToBack(iti);
+                _character.PushToBack(beard);
             }
 
             layer = Layer.Hair;
             content = CharacterCreationValues.GetHairComboContent(_characterInfo.IsFemale, race);
 
-            Item it = CreateItem(content.GetGraphic(CurrentOption[layer]), CurrentColorOption[layer].Item2, layer);
+            Item hair = CreateItem(content.GetGraphic(CurrentOption[layer]), CurrentColorOption[layer].Item2, layer);
 
-            _character.PushToBack(it);
+            _character.PushToBack(hair);
+        }
+        
+        private void UpdateCharacter(bool isFemale, RaceType race, bool isHardcore = false, bool isSoloSelfFound = false)
+        {
+            if (_character == null)
+            {
+                return;
+            }
+
+            _character.Race = race;
+            _character.IsFemale = isFemale;
+            _character.IsHardcore = isHardcore;
+            _character.IsSoloSelfFound = isSoloSelfFound;
+
+            if (isFemale)
+            {
+                _character.Flags |= Flags.Female;
+            }
+            else
+            {
+                _character.Flags &= ~Flags.Female;
+            }
+            
+            LinkedObject first = _character.Items;
+
+            while (first != null)
+            {
+                LinkedObject next = first.Next;
+
+                World.RemoveItem((Item)first, true);
+
+                first = next;
+            }
+
+
+            switch (race)
+            {
+                case RaceType.GARGOYLE:
+                    _character.Graphic = isFemale ? (ushort)0x029B : (ushort)0x029A;
+
+                    Item it = CreateItem(0x4001, CurrentColorOption[Layer.Shirt].Item2, Layer.Robe);
+
+                    _character.PushToBack(it);
+
+                    break;
+
+                case RaceType.ELF when isFemale:
+                    _character.Graphic = 0x025E;
+                    it = CreateItem(0x1710, 0x0384, Layer.Shoes);
+                    _character.PushToBack(it);
+
+                    it = CreateItem(0x1531, CurrentColorOption[Layer.Pants].Item2, Layer.Skirt);
+
+                    _character.PushToBack(it);
+
+                    it = CreateItem(0x1518, CurrentColorOption[Layer.Shirt].Item2, Layer.Shirt);
+
+                    _character.PushToBack(it);
+
+                    break;
+
+                case RaceType.ELF:
+                    _character.Graphic = 0x025D;
+                    it = CreateItem(0x1710, 0x0384, Layer.Shoes);
+                    _character.PushToBack(it);
+
+                    it = CreateItem(0x152F, CurrentColorOption[Layer.Pants].Item2, Layer.Pants);
+
+                    _character.PushToBack(it);
+
+                    it = CreateItem(0x1518, CurrentColorOption[Layer.Shirt].Item2, Layer.Shirt);
+
+                    _character.PushToBack(it);
+
+                    break;
+
+                default:
+
+                {
+                    if (isFemale)
+                    {
+                        _character.Graphic = 0x0191;
+                        it = CreateItem(0x1710, 0x0384, Layer.Shoes);
+                        _character.PushToBack(it);
+
+                        it = CreateItem(0x1531, CurrentColorOption[Layer.Pants].Item2, Layer.Skirt);
+
+                        _character.PushToBack(it);
+
+                        it = CreateItem(0x1EFD, CurrentColorOption[Layer.Shirt].Item2, Layer.Shirt);
+
+                        _character.PushToBack(it);
+                    }
+                    else
+                    {
+                        _character.Graphic = 0x0190;
+                        it = CreateItem(0x1710, 0x0384, Layer.Shoes);
+                        _character.PushToBack(it);
+
+                        it = CreateItem(0x1539, CurrentColorOption[Layer.Pants].Item2, Layer.Pants);
+
+                        _character.PushToBack(it);
+
+                        it = CreateItem(0x1EFD, CurrentColorOption[Layer.Shirt].Item2, Layer.Shirt);
+
+                        _character.PushToBack(it);
+                    }
+
+                    break;
+                }
+            }
+            
+            Layer layer;
+            CharacterCreationValues.ComboContent content;
+            
+            if (!_characterInfo.IsFemale && race != RaceType.ELF)
+            {
+                layer = Layer.Beard;
+                content = CharacterCreationValues.GetFacialHairComboContent(race);
+
+                Item beard = CreateItem(content.GetGraphic(CurrentOption[layer]), CurrentColorOption[layer].Item2, layer);
+
+                _character.PushToBack(beard);
+            }
+
+            layer = Layer.Hair;
+            content = CharacterCreationValues.GetHairComboContent(_characterInfo.IsFemale, race);
+
+            Item hair = CreateItem(content.GetGraphic(CurrentOption[layer]), CurrentColorOption[layer].Item2, layer);
+
+            _character.PushToBack(hair);
         }
 
         private void HandleRaceChanged()
         {
-            CurrentColorOption.Clear();
-            HandleGenreChange();
             RaceType race = _characterInfo.Race;
             CharacterListFlags flags = World.ClientFeatures.Flags;
             LockedFeatureFlags locks = World.ClientLockedFeatures.Flags;
@@ -403,236 +780,45 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
 
             if (race == RaceType.ELF && !allowElf)
             {
-                _nextButton.IsEnabled = false;
-                _nextButton.Hue = 944;
+                _CreateButton.IsEnabled = false;
             }
             else if (race == RaceType.GARGOYLE && !allowGarg)
             {
-                _nextButton.IsEnabled = false;
-                _nextButton.Hue = 944;
+                _CreateButton.IsEnabled = false;
             }
             else
             {
-                _nextButton.IsEnabled = true;
-                _nextButton.Hue = 0;
+                _CreateButton.IsEnabled = true;
             }
         }
-
-        private void HandleGenreChange()
+        
+        private void AddCustomColorPickerTable(int x, int y, ushort[] pallet, Layer layer, int rows, int columns)
         {
-            RaceType race = _characterInfo.Race;
-
-            CurrentOption[Layer.Beard] = 0;
-            CurrentOption[Layer.Hair] = 1;
-
-            if (_paperDoll != null)
-            {
-                Remove(_paperDoll);
-            }
-
-            if (_hairCombobox != null)
-            {
-                Remove(_hairCombobox);
-                Remove(_hairLabel);
-            }
-
-            if (_facialCombobox != null)
-            {
-                Remove(_facialCombobox);
-                Remove(_facialLabel);
-            }
-
-            foreach (CustomColorPicker customPicker in Children.OfType<CustomColorPicker>().ToList())
-            {
-                Remove(customPicker);
-            }
-
-            // Hair
-            CharacterCreationValues.ComboContent content = CharacterCreationValues.GetHairComboContent(_characterInfo.IsFemale, race);
-
-            bool isAsianLang = string.Compare(Settings.GlobalSettings.Language, "CHT", StringComparison.InvariantCultureIgnoreCase) == 0 ||
-                string.Compare(Settings.GlobalSettings.Language, "KOR", StringComparison.InvariantCultureIgnoreCase) == 0 ||
-                string.Compare(Settings.GlobalSettings.Language, "JPN", StringComparison.InvariantCultureIgnoreCase) == 0;
-
-            bool unicode = isAsianLang;
-            byte font = (byte)(isAsianLang ? 3 : 9);
-            ushort hue = (ushort)(isAsianLang ? 0xFFFF : 0);
-
             Add
             (
-                _hairLabel = new Label(Client.Game.UO.FileManager.Clilocs.GetString(race == RaceType.GARGOYLE ? 1112309 : 3000121), unicode, hue, font: font)
-                {
-                    X = 98, Y = 140
-                },
-                1
+                _colorTablePicker = new CustomColorTablePicker(this, x, y, 28, 25, columns, rows, pallet, Layer.Hair)
             );
 
-            Add
-            (
-                _hairCombobox = new Combobox
-                (
-                    97,
-                    155,
-                    120,
-                    content.Labels,
-                    CurrentOption[Layer.Hair]
-                ),
-                1
-            );
-
-            _hairCombobox.OnOptionSelected += Hair_OnOptionSelected;
-
-            // Facial Hair
-            if (!_characterInfo.IsFemale && race != RaceType.ELF)
+            if (!CurrentColorOption.ContainsKey(layer))
             {
-                content = CharacterCreationValues.GetFacialHairComboContent(race);
-
-                Add
-                (
-                    _facialLabel = new Label(Client.Game.UO.FileManager.Clilocs.GetString(race == RaceType.GARGOYLE ? 1112511 : 3000122), unicode, hue, font: font)
-                    {
-                        X = 98, Y = 184
-                    },
-                    1
-                );
-
-                Add
-                (
-                    _facialCombobox = new Combobox
-                    (
-                        97,
-                        199,
-                        120,
-                        content.Labels,
-                        CurrentOption[Layer.Beard]
-                    ),
-                    1
-                );
-
-                _facialCombobox.OnOptionSelected += Facial_OnOptionSelected;
-            }
-            else
-            {
-                _facialCombobox = null;
-                _facialLabel = null;
+                CurrentColorOption[layer] = new Tuple<int, ushort>(0, _colorTablePicker.SelectedHue);
             }
 
-            // Skin
-            ushort[] pallet = CharacterCreationValues.GetSkinPallet(race);
-
-            AddCustomColorPicker
-            (
-                489,
-                141,
-                pallet,
-                Layer.Invalid,
-                3000183,
-                8,
-                pallet.Length >> 3
-            );
-
-            // Shirt Color
-            AddCustomColorPicker
-            (
-                489,
-                183,
-                null,
-                Layer.Shirt,
-                3000440,
-                10,
-                20
-            );
-
-            // Pants Color
-            if (race != RaceType.GARGOYLE)
-            {
-                AddCustomColorPicker
-                (
-                    489,
-                    225,
-                    null,
-                    Layer.Pants,
-                    3000441,
-                    10,
-                    20
-                );
-            }
-
-            // Hair
-            pallet = CharacterCreationValues.GetHairPallet(race);
-
-            AddCustomColorPicker
-            (
-                489,
-                267,
-                pallet,
-                Layer.Hair,
-                race == RaceType.GARGOYLE ? 1112322 : 3000184,
-                8,
-                pallet.Length >> 3
-            );
-
-            if (!_characterInfo.IsFemale && race != RaceType.ELF)
-            {
-                // Facial
-                pallet = CharacterCreationValues.GetHairPallet(race);
-
-                AddCustomColorPicker
-                (
-                    489,
-                    309,
-                    pallet,
-                    Layer.Beard,
-                    race == RaceType.GARGOYLE ? 1112512 : 3000446,
-                    8,
-                    pallet.Length >> 3
-                );
-            }
-
-            CreateCharacter(_characterInfo.IsFemale, race);
-
-            UpdateEquipments();
-
-            Add
-            (
-                _paperDoll = new PaperDollInteractable(262, 135, _character, new PaperDollGump(World))
-                {
-                    AcceptMouseInput = false
-                },
-                1
-            );
-
-            _paperDoll.RequestUpdate();
+            _colorTablePicker.ColorSelected += ColorPicker_ColorSelected;
         }
 
-        private void AddCustomColorPicker
-        (
-            int x,
-            int y,
-            ushort[] pallet,
-            Layer layer,
-            int clilocLabel,
-            int rows,
-            int columns
-        )
+        private void AddCustomColorPicker(int x, int y, ushort[] pallet, Layer layer, int clilocLabel, int rows, int columns)
         {
             CustomColorPicker colorPicker;
 
             Add
             (
-                colorPicker = new CustomColorPicker
-                (
-                    this,
-                    layer,
-                    clilocLabel,
-                    pallet,
-                    rows,
-                    columns
-                )
+                colorPicker = new CustomColorPicker(layer, clilocLabel, pallet, rows, columns)
                 {
-                    X = x, Y = y
-                },
-                1
+                    X = x,
+                    Y = y,
+                    IsVisible = false
+                }, 1
             );
 
             if (!CurrentColorOption.ContainsKey(layer))
@@ -647,7 +833,7 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
             colorPicker.ColorSelected += ColorPicker_ColorSelected;
         }
 
-        private void ColorPicker_ColorSelected(object sender, ColorSelectedEventArgs e)
+        public void ColorPicker_ColorSelected(object sender, ColorSelectedEventArgs e)
         {
             if (e.SelectedIndex == 0xFFFF)
             {
@@ -684,30 +870,70 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
 
         private void Facial_OnOptionSelected(object sender, int e)
         {
+            RaceType race = _characterInfo.Race;
+            CharacterCreationValues.ComboContent content = CharacterCreationValues.GetFacialHairComboContent(race);
             CurrentOption[Layer.Beard] = e;
-            UpdateEquipments();
+            UpdateHair(race, Layer.Beard, CurrentColorOption[Layer.Beard].Item2, content);
             _paperDoll.RequestUpdate();
         }
 
         private void Hair_OnOptionSelected(object sender, int e)
         {
+            RaceType race = _characterInfo.Race;
+            CharacterCreationValues.ComboContent content = CharacterCreationValues.GetHairComboContent(_characterInfo.IsFemale, race);
             CurrentOption[Layer.Hair] = e;
-            UpdateEquipments();
+            UpdateHair(race, Layer.Hair, CurrentColorOption[Layer.Hair].Item2, content);
             _paperDoll.RequestUpdate();
+        }
+
+        private void Skin_OnOptionSelected(object sender, int e)
+        {
+            RaceType race = _characterInfo.Race;
+            ushort[] pallet = CharacterCreationValues.GetSkinPallet(race);
+            CurrentOption[Layer.Invalid] = e;
+            _character.Hue = pallet[e];
+            _paperDoll.RequestUpdate();
+        }
+
+        private void UpdateHair(RaceType race, Layer layer, ushort hue, CharacterCreationValues.ComboContent content)
+        {
+            if (layer == Layer.Hair)
+            {
+                Item hair = CreateItem(content.GetGraphic(CurrentOption[layer]), CurrentColorOption[layer].Item2, layer);
+                _character.PushToBack(hair);
+            }
+            else if (layer == Layer.Beard)
+            {
+                if (!_characterInfo.IsFemale && race != RaceType.ELF)
+                {
+                    Item beard = CreateItem(content.GetGraphic(CurrentOption[layer]), CurrentColorOption[layer].Item2, layer);
+                    _character.PushToBack(beard);
+                }
+            }
         }
 
         public override void OnButtonClick(int buttonID)
         {
             CharCreationGump charCreationGump = UIManager.GetGump<CharCreationGump>();
-
-            switch ((Buttons) buttonID)
+            ushort[] pallet = null;
+            
+            switch ((Buttons)buttonID)
             {
                 case Buttons.FemaleButton:
                     _femaleRadio.IsClicked = true;
                     _maleRadio.IsClicked = false;
                     _characterInfo.IsFemale = true;
+                    _femaleRadio.Alpha = 0.45f;
+                    _maleRadio.Alpha = 0;
+                    // CurrentOption[Layer.Hair] = 2;
+                    CurrentOption[Layer.Beard] = 0;
+                    _beardSlider.SelectedIndex = CurrentOption[Layer.Beard];
+                    _hairSlider.SelectedIndex = CurrentOption[Layer.Hair];
+                    _beardSlider.IsVisible = false;
+                    _beardSlider.ResetXPosition();
+                    // _hairSlider.ResetXPosition();
 
-                    HandleGenreChange();
+                    UpdateCharacter(_femaleRadio.IsClicked, _characterInfo.Race, _characterInfo.IsHardcore, _characterInfo.IsSoloSelfFound);
 
                     break;
 
@@ -715,9 +941,18 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
                     _maleRadio.IsClicked = true;
                     _femaleRadio.IsClicked = false;
                     _characterInfo.IsFemale = false;
+                    _maleRadio.Alpha = 0.45f;
+                    _femaleRadio.Alpha = 0;
+                    // CurrentOption[Layer.Hair] = 2;
+                    // CurrentOption[Layer.Beard] = 0;
+                    _beardSlider.IsVisible = true;
+                    _beardSlider.SelectedIndex = CurrentOption[Layer.Beard];
+                    _hairSlider.SelectedIndex = CurrentOption[Layer.Hair];
+                    // _beardSlider.ResetXPosition();
+                    // _hairSlider.ResetXPosition();
 
-                    HandleGenreChange();
-
+                    UpdateCharacter(_femaleRadio.IsClicked, _characterInfo.Race, _characterInfo.IsHardcore, _characterInfo.IsSoloSelfFound);
+                    
                     break;
 
                 case Buttons.HumanButton:
@@ -779,10 +1014,34 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
 
                 case Buttons.Next:
                     _character.Name = _nameTextBox.Text;
+                    _character.IsHardcore = _hardcoreCheckbox.IsChecked;
+                    _character.IsSoloSelfFound = _soloSelfFoundCheckbox.IsChecked;
 
                     if (ValidateCharacter(_character))
                     {
                         charCreationGump.SetCharacter(_character);
+                        
+                        if (_createCharTradeGump != null && ValidateValues(_createCharTradeGump))
+                        {
+                            for (int i = 0; i < _createCharTradeGump._skillsCombobox.Length; i++)
+                            {
+                                if (_createCharTradeGump._skillsCombobox[i].SelectedIndex != -1)
+                                {
+                                    Skill skill = _character.Skills[_createCharTradeGump._skillList[_createCharTradeGump._skillsCombobox[i].SelectedIndex].Index];
+                                    skill.ValueFixed = (ushort) _createCharTradeGump._skillSliders[i].Value;
+                                    skill.BaseFixed = 0;
+                                    skill.CapFixed = 0;
+                                    skill.Lock = Lock.Locked;
+                                }
+                            }
+
+                            _character.Strength = (ushort) _createCharTradeGump._attributeSliders[0].Value;
+                            _character.Intelligence = (ushort) _createCharTradeGump._attributeSliders[1].Value;
+                            _character.Dexterity = (ushort) _createCharTradeGump._attributeSliders[2].Value;
+
+                            charCreationGump.SetAttributes(true);
+                            // charCreationGump.SetStep(CharCreationGump.CharCreationStep.ChooseCity)
+                        }
                     }
 
                     break;
@@ -791,14 +1050,94 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
                     charCreationGump.StepBack();
 
                     break;
+
+                case Buttons.HairButton:
+                    _hairSelect.Alpha = .55f;
+                    _beardSelect.Alpha = 0;
+                    _shirtSelect.Alpha = 0;
+                    _pantsSelect.Alpha = 0;
+                    pallet = CharacterCreationValues.GetCustomHairPallet();
+                    _colorTablePicker.ChangePallete(pallet);
+                    _colorTablePicker._layer = Layer.Hair;
+                    // _colorTablePicker.ResetSelectedIndex();
+                    _colorTablePicker.DeferredSelection();
+
+
+                    break;
+
+                case Buttons.BeardButton:
+                    _beardSelect.Alpha = .55f;
+                    _hairSelect.Alpha = 0;
+                    _shirtSelect.Alpha = 0;
+                    _pantsSelect.Alpha = 0;
+                    pallet = CharacterCreationValues.GetCustomHairPallet();
+                    _colorTablePicker.ChangePallete(pallet);
+                    _colorTablePicker._layer = Layer.Beard;
+                    // _colorTablePicker.ResetSelectedIndex();
+                    _colorTablePicker.DeferredSelection();
+
+
+                    break;
+
+                case Buttons.ShirtButton:
+                    _shirtSelect.Alpha = .55f;
+                    _pantsSelect.Alpha = 0;
+                    _beardSelect.Alpha = 0;
+                    _hairSelect.Alpha = 0;
+                    pallet = CharacterCreationValues.GetCustomClothesPallet();
+                    _colorTablePicker.ChangePallete(pallet);
+                    _colorTablePicker._layer = Layer.Shirt;
+                    // _colorTablePicker.ResetSelectedIndex();
+                    _colorTablePicker.DeferredSelection();
+
+
+                    break;
+                
+                case Buttons.PantsButton:
+                    _pantsSelect.Alpha = .55f;
+                    _shirtSelect.Alpha = 0;
+                    _beardSelect.Alpha = 0;
+                    _hairSelect.Alpha = 0;
+                    pallet = CharacterCreationValues.GetCustomClothesPallet();
+                    _colorTablePicker.ChangePallete(pallet);
+                    _colorTablePicker._layer = Layer.Pants;
+                    // _colorTablePicker.ResetSelectedIndex();
+                    _colorTablePicker.DeferredSelection();
+
+
+                    break;
             }
 
             base.OnButtonClick(buttonID);
+        }
+        
+        private bool ValidateValues(CreateCharTradeGump charTradeGump)
+        {
+            if (charTradeGump._skillsCombobox.Where(s => s.SelectedIndex >= 0).ToList().Count >= 3)
+            {
+                int duplicated = charTradeGump._skillsCombobox.GroupBy(o => o.SelectedIndex).Count(o => o.Count() > 1);
+
+                if (duplicated > 0)
+                {
+                    UIManager.GetGump<CharCreationGump>()?.ShowMessage(ClilocLoader.Instance.GetString(1080032));
+
+                    return false;
+                }
+            }
+            else
+            {
+                UIManager.GetGump<CharCreationGump>()?.ShowMessage(Client.Version <= ClientVersion.CV_5090 ? ResGumps.YouMustHaveThreeUniqueSkillsChosen : ClilocLoader.Instance.GetString(1080032));
+
+                return false;
+            }
+
+            return true;
         }
 
         private bool ValidateCharacter(PlayerMobile character)
         {
             int invalid = Validate(character.Name);
+
             if (invalid > 0)
             {
                 UIManager.GetGump<CharCreationGump>()?.ShowMessage(Client.Game.UO.FileManager.Clilocs.GetString(invalid));
@@ -892,98 +1231,17 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
             return 0;
         }
 
-        private static readonly char[] _SpaceDashPeriodQuote = new char[]
-        {
-            ' ', '-', '.', '\''
-        };
+        private static readonly char[] _SpaceDashPeriodQuote = new char[] { ' ', '-', '.', '\'' };
 
-        private static string[] _StartDisallowed = new string[]
-        {
-            "seer",
-            "counselor",
-            "gm",
-            "admin",
-            "lady",
-            "lord"
-        };
+        private static string[] _StartDisallowed = new string[] { "seer", "counselor", "gm", "admin", "lady", "lord" };
 
         private static readonly string[] _Disallowed = new string[]
         {
-            "jigaboo",
-            "chigaboo",
-            "wop",
-            "kyke",
-            "kike",
-            "tit",
-            "spic",
-            "prick",
-            "piss",
-            "lezbo",
-            "lesbo",
-            "felatio",
-            "dyke",
-            "dildo",
-            "chinc",
-            "chink",
-            "cunnilingus",
-            "cum",
-            "cocksucker",
-            "cock",
-            "clitoris",
-            "clit",
-            "ass",
-            "hitler",
-            "penis",
-            "nigga",
-            "nigger",
-            "klit",
-            "kunt",
-            "jiz",
-            "jism",
-            "jerkoff",
-            "jackoff",
-            "goddamn",
-            "fag",
-            "blowjob",
-            "bitch",
-            "asshole",
-            "dick",
-            "pussy",
-            "snatch",
-            "cunt",
-            "twat",
-            "shit",
-            "fuck",
-            "tailor",
-            "smith",
-            "scholar",
-            "rogue",
-            "novice",
-            "neophyte",
-            "merchant",
-            "medium",
-            "master",
-            "mage",
-            "lb",
-            "journeyman",
-            "grandmaster",
-            "fisherman",
-            "expert",
-            "chef",
-            "carpenter",
-            "british",
-            "blackthorne",
-            "blackthorn",
-            "beggar",
-            "archer",
-            "apprentice",
-            "adept",
-            "gamemaster",
-            "frozen",
-            "squelched",
-            "invulnerable",
-            "osi",
-            "origin"
+            "jigaboo", "chigaboo", "wop", "kyke", "kike", "tit", "spic", "prick", "piss", "lezbo", "lesbo", "felatio", "dyke", "dildo", "chinc", "chink", "cunnilingus", "cum",
+            "cocksucker", "cock", "clitoris", "clit", "ass", "hitler", "penis", "nigga", "nigger", "klit", "kunt", "jiz", "jism", "jerkoff", "jackoff", "goddamn", "fag",
+            "blowjob", "bitch", "asshole", "dick", "pussy", "snatch", "cunt", "twat", "shit", "fuck", "tailor", "smith", "scholar", "rogue", "novice", "neophyte", "merchant",
+            "medium", "master", "mage", "lb", "journeyman", "grandmaster", "fisherman", "expert", "chef", "carpenter", "british", "blackthorne", "blackthorn", "beggar",
+            "archer", "apprentice", "adept", "gamemaster", "frozen", "squelched", "invulnerable", "osi", "origin"
         };
 
         private Item CreateItem(int id, ushort hue, Layer layer)
@@ -1016,16 +1274,20 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
 
         private enum Buttons
         {
-            MaleButton,
-            FemaleButton,
-            HumanButton,
-            ElfButton,
-            GargoyleButton,
-            Prev,
-            Next
+            MaleButton = 1,
+            FemaleButton = 2,
+            HumanButton = 3,
+            ElfButton = 4,
+            GargoyleButton = 5,
+            Prev = 6,
+            Next = 7,
+            HairButton = 8,
+            BeardButton = 9,
+            ShirtButton = 10,
+            PantsButton = 11
         }
 
-        private class ColorSelectedEventArgs : EventArgs
+        public class ColorSelectedEventArgs : EventArgs
         {
             public ColorSelectedEventArgs(Layer layer, ushort[] pallet, int selectedIndex)
             {
@@ -1173,5 +1435,364 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
                 ColorSelected?.Invoke(this, new ColorSelectedEventArgs(_layer, _colorPickerBox.Hues, _colorPickerBox.SelectedIndex));
             }
         }
+
+        internal class ProgressSlider : Control
+        {
+            private CreateCharAppearanceGump _parent;
+            private GumpPic _progressSlider;
+            private Button _nextButton, _previousButton;
+            private int _selectedIndex;
+            private Layer _layer;
+            private RaceType _race;
+            private PlayerMobile _character;
+            private int _length;
+            private bool _updateUI;
+            private int _startingX;
+
+
+            public ProgressSlider(CreateCharAppearanceGump parent, int x, int y, int length, Layer layer, RaceType race, PlayerMobile character, int selectedIndex)
+            {
+                _parent = parent;
+                X = x;
+                Y = y;
+                SelectedIndex = selectedIndex;
+                _race = race;
+                _character = character;
+                _layer = layer;
+                _length = length;
+                _startingX = x;
+
+
+                Add
+                (
+                    _previousButton = new Button((int)Buttons.PrevButton, 157, 157, 157)
+                    {
+                        X = X,
+                        Y = Y,
+                        ButtonAction = ButtonAction.Activate
+                    }
+                );
+
+                _previousButton.Alpha = SelectedIndex > 0 ? 1 : 0;
+
+                if (SelectedIndex < _length)
+                {
+                    Add
+                    (
+                        _nextButton = new Button((int)Buttons.NextButton, 158, 158, 158)
+                        {
+                            X = X + 239,
+                            Y = Y,
+                            ButtonAction = ButtonAction.Activate
+                        }
+                    );
+                }
+
+                _nextButton.Alpha = SelectedIndex < _length ? 1 : 0;
+
+                double cap = _layer == Layer.Beard ? 215 : _layer == Layer.Hair ? 212 : 202;
+                var xPosition = Math.Max(1, (int)Math.Floor(cap * SelectedIndex / _length));
+
+                Add
+                (
+                    _progressSlider = new GumpPic(X + 32 + xPosition, _layer == Layer.Beard ? Y - 2 : Y - 1, 177, 0)
+                    {
+                        Height = _layer == Layer.Beard ? 30 : 29,
+                        Alpha = 0.45f,
+                        Width = (int)Math.Round((double)(Math.Max(0, Math.Min(100, ((double)1 / (double)_length) * 100))), MidpointRounding.ToEven)
+                    }
+                );
+            }
+
+            public void ResetXPosition()
+            {
+                _progressSlider.X = _startingX + 32;
+            }
+
+            private enum Buttons
+            {
+                PrevButton = 20,
+                NextButton = 21,
+            }
+
+            public override void OnButtonClick(int buttonID)
+            {
+                switch ((Buttons)buttonID)
+                {
+                    case Buttons.PrevButton:
+                    {
+                        if (SelectedIndex > 0)
+                        {
+                            SelectedIndex--;
+                        }
+                        else
+                        {
+                            return;
+                        }
+
+                        RequestUpdate();
+
+                        break;
+                    }
+
+                    case Buttons.NextButton:
+                    {
+                        if (SelectedIndex < _length)
+                        {
+                            SelectedIndex++;
+                        }
+                        else
+                        {
+                            return;
+                        }
+
+                        RequestUpdate();
+
+                        break;
+                    }
+                }
+
+                base.OnButtonClick(buttonID);
+            }
+
+
+            public override void Update()
+            {
+                base.Update();
+
+                if (_updateUI)
+                {
+                    UpdateUI();
+
+                    _updateUI = false;
+                }
+            }
+
+            public void RequestUpdate()
+            {
+                _updateUI = true;
+            }
+
+            private void UpdateUI()
+            {
+                if (IsDisposed)
+                {
+                    return;
+                }
+
+                double cap = _layer == Layer.Beard ? 215 : _layer == Layer.Hair ? 212 : 202;
+                var xPosition = Math.Max(1, (int)Math.Floor(cap * SelectedIndex / _length));
+
+                if (SelectedIndex > 0)
+                {
+                    _previousButton.IsEnabled = true;
+                    _previousButton.Alpha = 1;
+                }
+                else
+                {
+                    _previousButton.IsEnabled = false;
+                    _previousButton.Alpha = 0;
+                }
+
+                if (SelectedIndex < _length - 1)
+                {
+                    _nextButton.IsEnabled = true;
+                    _nextButton.Alpha = 1;
+                }
+                else
+                {
+                    _nextButton.IsEnabled = false;
+                    _nextButton.Alpha = 0;
+                }
+
+                _progressSlider.X = _startingX + 32 + xPosition;
+            }
+
+            public event EventHandler<int> OnOptionSelected;
+
+            public int SelectedIndex
+            {
+                get => _selectedIndex;
+                set
+                {
+                    _selectedIndex = value;
+
+                    OnOptionSelected?.Invoke(this, value);
+                }
+            }
+        }
+
+        internal class CustomColorTablePicker : Gump
+        {
+            private readonly int _cellWidth, _cellHeight, _columns, _rows;
+            private ushort[] _hues;
+            public Layer _layer;
+            private int _selectedIndex = -1;
+            private Rectangle _selectedBox = Rectangle.Empty;
+            private CreateCharAppearanceGump _parent;
+
+
+            public event EventHandler<ColorSelectedEventArgs> ColorSelected;
+
+            public CustomColorTablePicker(CreateCharAppearanceGump parent, int x, int y, int cellWidth, int cellHeight, int columns, int rows, ushort[] hues, Layer layer) : base(0, 0)
+            {
+                _parent = parent;
+                X = x;
+                Y = y;
+                _cellWidth = cellWidth;
+                _cellHeight = cellHeight;
+                _columns = columns;
+                _rows = rows;
+                _hues = hues;
+                _layer = layer;
+
+                Width = _columns * _cellWidth;
+                Height = _rows * _cellHeight;
+
+                AcceptMouseInput = true;
+
+                // Defer the selection action to a method called after initialization
+                DeferredSelection();
+            }
+            
+            public void DeferredSelection()
+            {
+                _selectedIndex = _parent.CurrentColorOption[_layer].Item1;
+                
+                if (_selectedIndex >= 0 && _selectedIndex < _hues.Length)
+                {
+                    int column = _selectedIndex % _columns;
+                    int row = _selectedIndex / _columns;
+
+                    // Set the selected box and invoke the event
+                    _selectedBox = new Rectangle(X + column * _cellWidth, Y + row * _cellHeight, _cellWidth, _cellHeight);
+        
+                    // Fire the event as if it was selected by the user
+                    // SelectColor();
+                }
+            }
+
+            private void SelectColor()
+            {
+                if (_selectedIndex == 0xFFFF)
+                {
+                    return;
+                }
+                
+                if (_layer != Layer.Invalid)
+                {
+                    Item item;
+
+                    if (_parent._character.Race == RaceType.GARGOYLE && _layer == Layer.Shirt)
+                    {
+                        item = _parent._character.FindItemByLayer(Layer.Robe);
+                    }
+                    else
+                    {
+                        item = _parent._character.FindItemByLayer(_parent._characterInfo.IsFemale && _layer == Layer.Pants ? Layer.Skirt : _layer);
+                    }
+
+                    if (item != null)
+                    {
+                        item.Hue = _parent.CurrentColorOption[_layer].Item2;
+                        Console.WriteLine($@"{item.Layer.ToString()}: {_parent.CurrentColorOption[_layer].Item2.ToString()}");
+                    }
+                }
+
+                _parent._paperDoll.RequestUpdate();
+            }
+
+            // Store and expose the selected hue (derived from the selected index and palette)
+            public ushort SelectedHue => (_selectedIndex >= 0 && _selectedIndex < _hues.Length) ? _hues[_selectedIndex] : (ushort)0xFFFF;
+            
+            
+
+            // Store and expose the selected index
+            public int SelectedIndex => _selectedIndex;
+
+            // Handle mouse clicks to select a color
+            protected override void OnMouseUp(int x, int y, MouseButtonType button)
+            {
+                if (button == MouseButtonType.Left)
+                {
+                    int column = x / _cellWidth;
+                    int row = y / _cellHeight;
+                    int selectedIndex = row * _columns + column;
+
+                    if (selectedIndex >= 0 && selectedIndex < _hues.Length)
+                    {
+                        _selectedIndex = selectedIndex;
+                        _selectedBox = new Rectangle(X + column * _cellWidth, Y + row * _cellHeight, _cellWidth, _cellHeight);
+
+                        ColorSelected?.Invoke(this, new ColorSelectedEventArgs(_layer, _hues, _selectedIndex));
+                    }
+                }
+            }
+            
+            public override bool Draw(UltimaBatcher2D batcher, int x, int y)
+            {
+                for (int row = 0; row < _rows; row++)
+                {
+                    for (int column = 0; column < _columns; column++)
+                    {
+                        int hueIndex = row * _columns + column;
+
+                        if (hueIndex >= _hues.Length)
+                            break;
+
+                        ushort hue = _hues[hueIndex];
+                        Rectangle box = new Rectangle(x + column * _cellWidth, y + row * _cellHeight, _cellWidth, _cellHeight);
+
+                        batcher.Draw(SolidColorTextureCache.GetTexture(Color.White), box, ShaderHueTranslator.GetHueVector(hue, false, .75f));
+                    }
+                }
+                
+                // Draw the outline last, after all the boxes are drawn, so it doesn't get overwritten
+                if (_selectedBox != Rectangle.Empty)
+                {
+                    DrawOutline(batcher, _selectedBox, Color.Gold, 3); // Draw gold outline
+                }
+
+                return true;
+            }
+            
+            private void DrawOutline(UltimaBatcher2D batcher, Rectangle box, Color outlineColor, int thickness)
+            {
+                // Define the color vector for the gold color
+                Vector3 goldColor = ShaderHueTranslator.GetHueVector(1710, false, 1);
+
+                // Draw the top edge
+                batcher.Draw(SolidColorTextureCache.GetTexture(Color.White),
+                             new Rectangle(box.X - thickness, box.Y - thickness, box.Width + thickness * 2, thickness),
+                             goldColor);
+
+                // Draw the bottom edge
+                batcher.Draw(SolidColorTextureCache.GetTexture(Color.White),
+                             new Rectangle(box.X - thickness, box.Y + box.Height, box.Width + thickness * 2, thickness),
+                             goldColor);
+
+                // Draw the left edge
+                batcher.Draw(SolidColorTextureCache.GetTexture(Color.White),
+                             new Rectangle(box.X - thickness, box.Y - thickness, thickness, box.Height + thickness * 2),
+                             goldColor);
+
+                // Draw the right edge
+                batcher.Draw(SolidColorTextureCache.GetTexture(Color.White),
+                             new Rectangle(box.X + box.Width, box.Y - thickness, thickness, box.Height + thickness * 2),
+                             goldColor);
+            }
+
+            public void ChangePallete(ushort[] pallet)
+            {
+                _hues = pallet;
+            }
+
+            public void ResetSelectedIndex()
+            {
+                _selectedBox = new Rectangle();
+                _selectedIndex = -1;
+            }
+        }
+
     }
 }

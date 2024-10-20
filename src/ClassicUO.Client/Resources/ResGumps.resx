@@ -1585,6 +1585,18 @@ Client version: '{0}'</value>
   <data name="HueContainerGumps" xml:space="preserve">
     <value>Recolor container gump by item hue</value>
   </data>
+  <data name="TooltipAlignment" xml:space="preserve">
+    <value>Tooltip Align</value>
+  </data>
+  <data name="Center" xml:space="preserve">
+    <value>Center</value>
+  </data>
+  <data name="Left" xml:space="preserve">
+    <value>Left</value>
+  </data>
+  <data name="Right" xml:space="preserve">
+    <value>Right</value>
+  </data>
   <data name="ResetMapsCache" xml:space="preserve">
     <value>Reset maps cache</value>
   </data>

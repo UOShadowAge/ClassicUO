@@ -178,7 +178,21 @@ namespace ClassicUO.Game.GameObjects
                 hueVec.Z = 0.5f;
             }
 
-            DrawStaticAnimated(batcher, graphic, posX, posY, hueVec, false, depth);
+            if (graphic >= 15293 && graphic <= 15391 && ProfileManager.CurrentProfile.TreeToStumps)
+            {
+                graphic = Constants.TREE_REPLACE_GRAPHIC;
+            }
+
+            DrawStaticAnimated
+            (
+                batcher,
+                graphic,
+                posX,
+                posY,
+                hueVec,
+                StaticFilters.IsCustomTree(graphic),
+                depth
+            );
 
             return true;
         }

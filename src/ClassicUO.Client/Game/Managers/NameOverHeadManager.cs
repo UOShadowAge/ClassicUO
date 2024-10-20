@@ -31,6 +31,7 @@
 #endregion
 
 using System;
+using System.Linq;
 using ClassicUO.Configuration;
 using ClassicUO.Game.GameObjects;
 using ClassicUO.Game.UI.Gumps;
@@ -66,7 +67,9 @@ namespace ClassicUO.Game.Managers
             set => ProfileManager.CurrentProfile.NameOverheadToggled = value;
         }
 
-        public bool IsAllowed(Entity serial)
+        public string[] HiddenNames = new[] { "Tree", "Small Vein", "Regular Vein", "Large Vein", "Rich Vein" }; 
+
+        public  bool IsAllowed(Entity serial)
         {
             if (serial == null)
             {
@@ -75,11 +78,17 @@ namespace ClassicUO.Game.Managers
 
             if (TypeAllowed == NameOverheadTypeAllowed.All)
             {
+                if (SerialHelper.IsItem(serial.Serial) && HiddenNames.Contains(_world.Items.Get(serial)?.Name))
+                    return false;
+
                 return true;
             }
 
             if (SerialHelper.IsItem(serial.Serial) && TypeAllowed == NameOverheadTypeAllowed.Items)
             {
+                if (HiddenNames.Contains(_world.Items.Get(serial)?.Name))
+                    return false;
+
                 return true;
             }
 

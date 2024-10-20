@@ -62,6 +62,8 @@ namespace ClassicUO.Game.GameObjects
             Walker = new WalkerManager(this);
             Pathfinder = new Pathfinder(world);
         }
+        
+        public ProfessionInfo Profession { get; set; }
 
         public Skill[] Skills { get; }
         public override bool InWarMode { get; set; }
@@ -138,6 +140,11 @@ namespace ClassicUO.Game.GameObjects
         public uint TithingPoints;
         public ushort Weight;
         public ushort WeightMax;
+        public short HeatTimer;
+        public short CriminalTimer;
+        public short BandageTimer;
+        public bool IsHardcore;
+        public bool IsSoloSelfFound;
 
         public Item FindBandage()
         {
@@ -562,7 +569,7 @@ namespace ClassicUO.Game.GameObjects
 
                             case 0x13F8: // Gnarled Staves
                                 Abilities[0] = Ability.ConcussionBlow;
-                                Abilities[1] = Ability.ForceOfNature;
+                                Abilities[1] = Ability.ParalyzingBlow;
 
                                 goto done;
 

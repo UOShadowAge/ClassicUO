@@ -78,7 +78,7 @@ namespace ClassicUO.Configuration
 
     internal sealed class Profile
     {
-        [JsonIgnore] public string Username { get; set; }
+        [JsonIgnore] public string AccountName { get; set; }
         [JsonIgnore] public string ServerName { get; set; }
         [JsonIgnore] public string CharacterName { get; set; }
 
@@ -165,6 +165,7 @@ namespace ClassicUO.Configuration
         public int TooltipDisplayZoom { get; set; } = 100;
         public int TooltipBackgroundOpacity { get; set; } = 70;
         public byte TooltipFont { get; set; } = 1;
+        public byte TooltipAlignment { get; set; } = 1; // 0 = left, 1 = center, 2 = right 
 
         // movements
         public bool EnablePathfind { get; set; }

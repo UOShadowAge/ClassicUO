@@ -739,22 +739,22 @@ namespace ClassicUO.Game.Scenes
 
                     case Entity ent:
 
-                        if (Keyboard.Alt && ent is Mobile)
-                        {
-                            _world.MessageManager.HandleMessage(
-                                _world.Player,
-                                ResGeneral.NowFollowing,
-                                string.Empty,
-                                0,
-                                MessageType.Regular,
-                                3,
-                                TextType.CLIENT
-                            );
-
-                            _followingMode = true;
-                            _followingTarget = ent;
-                        }
-                        else if (!_world.DelayedObjectClickManager.IsEnabled)
+                        // if (Keyboard.Alt && ent is Mobile)
+                        // {
+                        //     _world.MessageManager.HandleMessage(
+                        //         _world.Player,
+                        //         ResGeneral.NowFollowing,
+                        //         string.Empty,
+                        //         0,
+                        //         MessageType.Regular,
+                        //         3,
+                        //         TextType.CLIENT
+                        //     );
+                        //
+                        //     _followingMode = true;
+                        //     _followingTarget = ent;
+                        // }
+                        if (!_world.DelayedObjectClickManager.IsEnabled)
                         {
                             _world.DelayedObjectClickManager.Set(
                                 ent.Serial,
@@ -1098,10 +1098,16 @@ namespace ClassicUO.Game.Scenes
                     {
                         if (SerialHelper.IsMobile(obj.Serial) || obj is Item it && it.IsDamageable)
                         {
+
+                            if (ProfileManager.CurrentProfile.TreeToStumps && obj is Item itm && itm.IsDamageable)
+                            {
+                                return false;
+                            }
+
+
                             BaseHealthBarGump customgump = UIManager.GetGump<BaseHealthBarGump>(
                                 obj
-                            );
-                            customgump?.Dispose();
+                            );                            customgump?.Dispose();
 
                             if (obj == _world.Player)
                             {

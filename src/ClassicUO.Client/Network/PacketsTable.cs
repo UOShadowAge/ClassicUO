@@ -168,7 +168,7 @@ namespace ClassicUO.Network
             0x0002, // 0x7E
             -1,     // 0x7F
             0x003E, // 0x80
-            -1,     // 0x81
+            0x0160, // 0x81 -> extended login
             0x0002, // 0x82
             0x0027, // 0x83
             0x0045, // 0x84
@@ -185,7 +185,7 @@ namespace ClassicUO.Network
             -1,     // 0x8F
             0x0013, // 0x90
             0x0041, // 0x91
-            -1,     // 0x92
+            0x0163, // 0x92 -> extended login
             0x0063, // 0x93
             -1,     // 0x94
             0x0009, // 0x95
@@ -252,12 +252,12 @@ namespace ClassicUO.Network
             0x0019, // 0xD2
             -1,     // 0xD3
             -1,     // 0xD4
-            -1,     // 0xD5
+            -1,     // 0xD5 -> account list
             -1,     // 0xD6
             -1,     // 0xD7
             -1,     // 0xD8
             0x010C, // 0xD9
-            -1,     // 0xDA
+            0x0145, // 0xDA -> account select
             -1,     // 0xDB
             0x09,   // dc
             -1,     // dd
@@ -287,12 +287,13 @@ namespace ClassicUO.Network
             0x15,   // f5
             -1,     // f6
             -1,     // f7
-            0x6A,   // f8
+            0x6C,   // f8
             -1,     // f9
             -1,     // fa -> UOStore
             -1,     // fb -> public house content
             -1,     // fc
             -1,     // fd
+            -1,     // fe
             -1      // ff
         };
 

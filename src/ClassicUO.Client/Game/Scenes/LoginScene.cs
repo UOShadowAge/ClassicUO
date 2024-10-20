@@ -31,7 +31,11 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
@@ -46,6 +50,7 @@ using ClassicUO.Game.UI.Gumps.CharCreation;
 using ClassicUO.Game.UI.Gumps.Login;
 using ClassicUO.IO;
 using ClassicUO.Assets;
+using ClassicUO.Game.UI.Controls;
 using ClassicUO.Network;
 using ClassicUO.Network.Encryption;
 using ClassicUO.Resources;
@@ -62,11 +67,20 @@ namespace ClassicUO.Game.Scenes
         VerifyingAccount,
         ServerSelection,
         LoginInToServer,
+        AccountSelection,
         CharacterSelection,
         EnteringBritania,
         CharacterCreation,
         CharacterCreationDone,
         PopUpMessage
+    }
+
+    internal class Character
+    {
+        public string Name { get; set; }
+        public PlayerMobile Player { get; set; }
+        public List<Item> Items { get; set; }
+        public ushort Hue { get; set; }
     }
 
     internal sealed class LoginScene : Scene
@@ -86,10 +100,11 @@ namespace ClassicUO.Game.Scenes
         public LoginSteps CurrentLoginStep { get; set; } = LoginSteps.Main;
         public ServerListEntry[] Servers { get; private set; }
         public CityInfo[] Cities { get; set; }
-        public string[] Characters { get; private set; }
+        public string[] Accounts { get; private set; }
+        public Character[] Characters { get; private set; }
         public string PopupMessage { get; set; }
         public byte ServerIndex { get; private set; }
-        public static string Account { get; internal set; }
+        public static string Username { get; internal set; }
         public string Password { get; private set; }
         public bool CanAutologin => _autoLogin || Reconnect;
         public (int min, int max) LoginDelay { get; private set; }
@@ -123,7 +138,7 @@ namespace ClassicUO.Game.Scenes
                 Client.Game.RestoreWindow();
             }
 
-            Client.Game.SetWindowSize(640, 480);
+            Client.Game.SetWindowSize(1280, 960);
         }
 
 
@@ -169,9 +184,9 @@ namespace ClassicUO.Game.Scenes
             {
                 if (_reconnectTime < Time.Ticks)
                 {
-                    if (!string.IsNullOrEmpty(Account))
+                    if (!string.IsNullOrEmpty(Username))
                     {
-                        Connect(Account, Crypter.Decrypt(Settings.GlobalSettings.Password));
+                        Connect(Username, Crypter.Decrypt(Settings.GlobalSettings.Password));
                     }
                     else if (!string.IsNullOrEmpty(Settings.GlobalSettings.Username))
                     {
@@ -190,7 +205,7 @@ namespace ClassicUO.Game.Scenes
                 }
             }
 
-            if ((CurrentLoginStep == LoginSteps.CharacterCreation || CurrentLoginStep == LoginSteps.CharacterSelection) && Time.Ticks > _pingTime)
+            if ((CurrentLoginStep == LoginSteps.AccountSelection || CurrentLoginStep == LoginSteps.CharacterCreation || CurrentLoginStep == LoginSteps.CharacterSelection) && Time.Ticks > _pingTime)
             {
                 // Note that this will not be an ICMP ping, so it's better that this *not* be affected by -no_server_ping.
 
@@ -235,6 +250,8 @@ namespace ClassicUO.Game.Scenes
 
                     return GetLoadingScreen();
 
+                case LoginSteps.AccountSelection: return new AccountSelectionGump();
+                
                 case LoginSteps.CharacterSelection: return new CharacterSelectionGump(_world);
 
                 case LoginSteps.ServerSelection:
@@ -310,20 +327,20 @@ namespace ClassicUO.Game.Scenes
             }
         }
 
-        public void Connect(string account, string password)
+        public void Connect(string username, string password)
         {
             if (CurrentLoginStep == LoginSteps.Connecting)
             {
                 return;
             }
 
-            Account = account;
+            Username = username;
             Password = password;
 
             // Save credentials to config file
             if (Settings.GlobalSettings.SaveAccount)
             {
-                Settings.GlobalSettings.Username = Account;
+                Settings.GlobalSettings.Username = Username;
                 Settings.GlobalSettings.Password = Crypter.Encrypt(Password);
                 Settings.GlobalSettings.Save();
             }
@@ -411,14 +428,27 @@ namespace ClassicUO.Game.Scenes
             }
         }
 
+        public void SelectAccount(uint index)
+        {
+            if (CurrentLoginStep == LoginSteps.AccountSelection)
+            {
+                LastAccountManager.Save(Username, World.ServerName, Accounts[index]);
+
+                CurrentLoginStep = LoginSteps.VerifyingAccount;
+                NetClient.Socket.Send_SelectAccount(index, Accounts[index]);
+            }
+        }
+
         public void SelectCharacter(uint index)
         {
             if (CurrentLoginStep == LoginSteps.CharacterSelection)
             {
-                LastCharacterManager.Save(Account, _world.ServerName, Characters[index]);
+                string lastAccName = LastAccountManager.GetLastAccountSafe(Username, _world.ServerName);
+
+                LastCharacterManager.Save(Username, _world.ServerName, lastAccName, Characters[index].Name);
 
                 CurrentLoginStep = LoginSteps.EnteringBritania;
-                NetClient.Socket.Send_SelectCharacter(index, Characters[index], NetClient.Socket.LocalIP);
+                NetClient.Socket.Send_SelectCharacter(index, Characters[index].Name, NetClient.Socket.LocalIP);
             }
         }
 
@@ -436,13 +466,15 @@ namespace ClassicUO.Game.Scenes
 
             for (; i < Characters.Length; i++)
             {
-                if (string.IsNullOrEmpty(Characters[i]))
+                if (string.IsNullOrEmpty(Characters[i].Name))
                 {
                     break;
                 }
             }
 
-            LastCharacterManager.Save(Account, _world.ServerName, character.Name);
+            string lastAccName = LastAccountManager.GetLastAccountSafe(Username, _world.ServerName);
+
+            LastCharacterManager.Save(Username, _world.ServerName, lastAccName, character.Name);
 
             NetClient.Socket.Send_CreateCharacter(character,
                                                   cityIndex,
@@ -458,6 +490,18 @@ namespace ClassicUO.Game.Scenes
         {
             if (CurrentLoginStep == LoginSteps.CharacterSelection)
             {
+                var paperdolls = UIManager.Gumps.OfType<PaperdollControl>().ToList();
+
+                if (paperdolls.Any())
+                {
+                    paperdolls.ForEach(p => p.Dispose());
+                }
+
+                Characters[index].Name = "";
+                Characters[index].Hue = 0;
+                Characters[index].Items = null;
+                Characters[index].Player = null;
+                
                 NetClient.Socket.Send_DeleteCharacter((byte)index, NetClient.Socket.LocalIP);
             }
         }
@@ -484,9 +528,11 @@ namespace ClassicUO.Game.Scenes
 
                 case LoginSteps.LoginInToServer:
                     NetClient.Socket.Disconnect();
+                    Accounts = null;
                     Characters = null;
                     DisposeAllServerEntries();
-                    Connect(Account, Password);
+                    // CurrentLoginStep = LoginSteps.Main;
+                    Connect(Username, Password);
 
                     break;
 
@@ -496,8 +542,10 @@ namespace ClassicUO.Game.Scenes
                     break;
 
                 case LoginSteps.PopUpMessage:
+                case LoginSteps.AccountSelection:
                 case LoginSteps.CharacterSelection:
                     NetClient.Socket.Disconnect();
+                    Accounts = null;
                     Characters = null;
                     DisposeAllServerEntries();
                     CurrentLoginStep = LoginSteps.Main;
@@ -542,7 +590,7 @@ namespace ClassicUO.Game.Scenes
                 NetClient.Socket.Send_Seed_Old(address);
             }
 
-            NetClient.Socket.Send_FirstLogin(Account, Password);
+            NetClient.Socket.Send_FirstLogin(Username, Password);
         }
 
         private void OnNetClientDisconnected(object sender, SocketError e)
@@ -556,6 +604,7 @@ namespace ClassicUO.Game.Scenes
 
             if (e != 0)
             {
+                Accounts = null;
                 Characters = null;
                 DisposeAllServerEntries();
 
@@ -590,7 +639,7 @@ namespace ClassicUO.Game.Scenes
 
             CurrentLoginStep = LoginSteps.ServerSelection;
 
-            if (CanAutologin)
+            if (CanAutologin || count == 1)
             {
                 if (Servers.Length != 0)
                 {
@@ -604,6 +653,7 @@ namespace ClassicUO.Game.Scenes
         public void UpdateCharacterList(ref StackDataReader p)
         {
             ParseCharacterList(ref p);
+            // ParseCharacterListStats(ref p);
 
             if (CurrentLoginStep != LoginSteps.PopUpMessage)
             {
@@ -618,10 +668,58 @@ namespace ClassicUO.Game.Scenes
             if (!string.IsNullOrWhiteSpace(PopupMessage))
             {
                 Gump g = null;
-                g = new LoadingGump(_world,PopupMessage, LoginButtons.OK, (but) => g.Dispose()) { IsModal = true };
+                g = new LoadingGump(_world, PopupMessage, LoginButtons.OK, (but) => g.Dispose()) { IsModal = true };
                 UIManager.Add(g);
                 PopupMessage = null;
             }
+        }
+
+        public void ReceiveAccountList(ref StackDataReader p)
+        {
+            ParseAccountList(ref p);
+
+            CurrentLoginStep = LoginSteps.AccountSelection;
+
+            uint accToSelect = 0;
+
+            bool haveAnyAccount = false;
+            bool canLogin = CanAutologin;
+
+            if (_autoLogin)
+            {
+                _autoLogin = false;
+            }
+
+            string lastAccName = LastAccountManager.GetLastAccount(Username, World.ServerName);
+
+            for (byte i = 0; i < Accounts.Length; i++)
+            {
+                if (Accounts[i].Length > 0)
+                {
+                    haveAnyAccount = true;
+
+                    if (Accounts[i] == lastAccName)
+                    {
+                        accToSelect = i;
+
+                        break;
+                    }
+                }
+            }
+
+            if (canLogin && haveAnyAccount)
+            {
+                SelectAccount(accToSelect);
+            }
+            else if (!haveAnyAccount)
+            {
+                StartCharCreation();
+            }
+        }
+
+        public void ReceiveCharacterListStats(ref StackDataReader p)
+        {
+            ParseCharacterListStats(ref p);
         }
 
         public void ReceiveCharacterList(ref StackDataReader p)
@@ -642,15 +740,16 @@ namespace ClassicUO.Game.Scenes
                 _autoLogin = false;
             }
 
-            string lastCharName = LastCharacterManager.GetLastCharacter(Account, _world.ServerName);
+            string lastAccName = LastAccountManager.GetLastAccountSafe(Username, _world.ServerName);
+            string lastCharName = LastCharacterManager.GetLastCharacter(Username, _world.ServerName, lastAccName);
 
             for (byte i = 0; i < Characters.Length; i++)
             {
-                if (Characters[i].Length > 0)
+                if (Characters[i].Name.Length > 0)
                 {
                     haveAnyCharacter = true;
 
-                    if (Characters[i] == lastCharName)
+                    if (Characters[i].Name == lastCharName)
                     {
                         charToSelect = i;
 
@@ -714,7 +813,7 @@ namespace ClassicUO.Game.Scenes
                         NetClient.Socket.Send(b, true, true);
                     }
 
-                    NetClient.Socket.Send_SecondLogin(Account, Password, seed);
+                    NetClient.Socket.Send_SecondLogin(Username, Password, seed);
                 }
             }
             finally
@@ -723,14 +822,114 @@ namespace ClassicUO.Game.Scenes
             }
         }
 
-        private void ParseCharacterList(ref StackDataReader p)
+        [Flags]
+        private enum AccountFlags : uint
+        {
+            None = 0u,
+
+            Banned = 1u << 0,
+            Young = 1u << 1,
+
+            All = ~None
+        }
+
+        private void ParseAccountList(ref StackDataReader p)
         {
             int count = p.ReadUInt8();
-            Characters = new string[count];
+            Accounts = new string[count];
 
             for (ushort i = 0; i < count; i++)
             {
-                Characters[i] = p.ReadASCII(30).TrimEnd('\0');
+                AccountFlags flags = (AccountFlags)p.ReadUInt32BE();
+
+                Accounts[i] = p.ReadASCII(Constants.LOGIN_EXTENDED_USERNAME_LENGTH).TrimEnd('\0');
+
+                if (flags.HasFlag(AccountFlags.Banned))
+                {
+                    Accounts[i] = $"{Accounts[i]} *";
+                }
+            }
+        }
+
+        private static void ParseCharacterListStats(ref StackDataReader p)
+        {
+            // Read the number of characters
+            int characterCount = p.ReadUInt8();
+
+            for (int i = 0; i < characterCount; i++)
+            {
+                // Start reading each character data, exactly 218 bytes per character
+                int startPosition = p.Position;
+
+                // Read character basic information
+                uint serial = p.ReadUInt32BE();              // 4 bytes
+                ushort body = p.ReadUInt16BE();              // 2 bytes
+                ushort hue = p.ReadUInt16BE();               // 2 bytes
+                string name = p.ReadASCII(30).TrimEnd('\0'); // 30 bytes for name, use TrimEnd to remove padding
+
+                // Create or update the character entity in the client world
+                LoginScene loginScene = Client.Game.GetScene<LoginScene>();
+
+                var player = loginScene.Characters.FirstOrDefault(c => c.Name == name);
+
+                if (player?.Player != null)
+                {
+                    player.Player.Graphic = body;
+                    player.Player.Hue = hue;
+                    player.Hue = hue;
+                    player.Name = name;
+
+                    if (player?.Player.Serial != serial)
+                        player.Player.Serial = serial;
+
+                    player.Items = new List<Item>();
+
+                    // Read equipped items and hair/facial hair
+                    for (int j = 0; j < 20; j++) // Up to 20 items per character (including hair/facial hair)
+                    {
+                        uint itemSerial = p.ReadUInt32BE();     // 4 bytes
+                        ushort itemID = p.ReadUInt16BE();       // 2 bytes
+                        ushort itemHue = p.ReadUInt16BE();      // 2 bytes
+                        Layer itemLayer = (Layer)p.ReadUInt8(); // 1 byte for layer
+
+                        if (itemSerial != 0) // Only add items that have a valid serial
+                        {
+                            Item item = new Item()
+                            {
+                                Serial = itemSerial,
+                                Graphic = itemID,
+                                Hue = itemHue,
+                                Layer = itemLayer,
+                            };
+                            
+                            player.Items.Add(item);
+                        }
+                    }
+                    
+                    // Ensure we consume exactly 218 bytes per character entry
+                    int bytesRead = p.Position - startPosition;
+
+                    if (bytesRead < 218)
+                    {
+                        p.Seek(218 - bytesRead); // Skip remaining bytes if fewer than 256 were read
+                    }
+                }
+            }
+        }
+
+        private void ParseCharacterList(ref StackDataReader p)
+        {
+            int count = p.ReadUInt8();
+            Characters = new Character[count];
+
+            for (ushort i = 0; i < count; i++)
+            {
+                Characters[i] = new Character();
+
+                if (Characters[i].Player == null)
+                    Characters[i].Player = new PlayerMobile(_world, 0);
+                
+                Characters[i].Name = p.ReadASCII(30).TrimEnd('\0');
 
                 p.Skip(30);
             }

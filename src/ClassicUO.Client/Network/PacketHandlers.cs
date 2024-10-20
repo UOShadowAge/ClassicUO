@@ -48,6 +48,7 @@ using ClassicUO.Utility.Platforms;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace ClassicUO.Network
@@ -333,6 +334,8 @@ namespace ClassicUO.Network
             Handler.Add(0xA8, ServerListReceived);
             Handler.Add(0x8C, ReceiveServerRelay);
             Handler.Add(0x86, UpdateCharacterList);
+            Handler.Add(0xD5, ReceiveAccountsList);
+            Handler.Add(0xF9, ReceiveCharacterListStats);
             Handler.Add(0xA9, ReceiveCharacterList);
             Handler.Add(0x82, ReceiveLoginRejection);
             Handler.Add(0x85, ReceiveLoginRejection);
@@ -509,11 +512,122 @@ namespace ClassicUO.Network
                 }
             }
         }
+        
+        private static void ServerListCharacterStatus(World world, ref StackDataReader p)
+        {
+            LoginScene ls = Client.Game.GetScene<LoginScene>();
+            uint serial = p.ReadUInt32BE();
+            string name = p.ReadASCII(30);
+
+            if (SerialHelper.IsMobile(serial) && ls.Characters.Any(c => c.Name == name))
+            {
+                var character = ls.Characters.First(c => c.Name == name);
+                PlayerMobile player = new(world, serial);
+                
+                player.Name = name;
+                player.Hits = p.ReadUInt16BE();
+                player.HitsMax = p.ReadUInt16BE();
+
+                player.IsRenamable = p.ReadBool();
+                byte type = p.ReadUInt8();
+
+                if (type > 0 && p.Position + 1 <= p.Length)
+                {
+                    player.IsFemale = p.ReadBool();
+
+                    player.Strength = p.ReadUInt16BE();
+                    player.Dexterity = p.ReadUInt16BE();
+                    player.Intelligence = p.ReadUInt16BE();
+                    player.Stamina = p.ReadUInt16BE();
+                    player.StaminaMax = p.ReadUInt16BE();
+                    player.Mana = p.ReadUInt16BE();
+                    player.ManaMax = p.ReadUInt16BE();
+                    player.Gold = p.ReadUInt32BE();
+                    player.PhysicalResistance = (short)p.ReadUInt16BE();
+                    player.Weight = p.ReadUInt16BE();
+
+                    if (type >= 5) //ML
+                    {
+                        player.WeightMax = p.ReadUInt16BE();
+                        byte race = p.ReadUInt8();
+
+                        if (race == 0)
+                        {
+                            race = 1;
+                        }
+
+                        player.Race = (RaceType)race;
+
+                    }
+                    else
+                    {
+                        if (Client.Game.UO.Version >= Utility.ClientVersion.CV_500A)
+                        {
+                            player.WeightMax = (ushort)(7 * (player.Strength >> 1) + 40);
+                        }
+                        else
+                        {
+                            player.WeightMax = (ushort)(player.Strength * 4 + 25);
+                        }
+                    }
+
+                    if (type >= 3) //Renaissance
+                    {
+                        player.StatsCap = (short)p.ReadUInt16BE();
+                        player.Followers = p.ReadUInt8();
+                        player.FollowersMax = p.ReadUInt8();
+                    }
+
+                    if (type >= 4) //AOS
+                    {
+                        player.FireResistance = (short)p.ReadUInt16BE();
+                        player.ColdResistance = (short)p.ReadUInt16BE();
+                        player.PoisonResistance = (short)p.ReadUInt16BE();
+                        player.EnergyResistance = (short)p.ReadUInt16BE();
+                        player.Luck = p.ReadUInt16BE();
+                        player.DamageMin = (short)p.ReadUInt16BE();
+                        player.DamageMax = (short)p.ReadUInt16BE();
+                        player.TithingPoints = p.ReadUInt32BE();
+                    }
+
+                    if (type >= 6)
+                    {
+                        player.MaxPhysicResistence = p.Position + 2 > p.Length ? (short)0 : (short)p.ReadUInt16BE();
+                        player.MaxFireResistence = p.Position + 2 > p.Length ? (short)0 : (short)p.ReadUInt16BE();
+                        player.MaxColdResistence = p.Position + 2 > p.Length ? (short)0 : (short)p.ReadUInt16BE();
+                        player.MaxPoisonResistence = p.Position + 2 > p.Length ? (short)0 : (short)p.ReadUInt16BE();
+                        player.MaxEnergyResistence = p.Position + 2 > p.Length ? (short)0 : (short)p.ReadUInt16BE();
+                        player.DefenseChanceIncrease = p.Position + 2 > p.Length ? (short)0 : (short)p.ReadUInt16BE();
+                        player.MaxDefenseChanceIncrease = p.Position + 2 > p.Length ? (short)0 : (short)p.ReadUInt16BE();
+                        player.HitChanceIncrease = p.Position + 2 > p.Length ? (short)0 : (short)p.ReadUInt16BE();
+                        player.SwingSpeedIncrease = p.Position + 2 > p.Length ? (short)0 : (short)p.ReadUInt16BE();
+                        player.DamageIncrease = p.Position + 2 > p.Length ? (short)0 : (short)p.ReadUInt16BE();
+                        player.LowerReagentCost = p.Position + 2 > p.Length ? (short)0 : (short)p.ReadUInt16BE();
+                        player.SpellDamageIncrease = p.Position + 2 > p.Length ? (short)0 : (short)p.ReadUInt16BE();
+                        player.FasterCastRecovery = p.Position + 2 > p.Length ? (short)0 : (short)p.ReadUInt16BE();
+                        player.FasterCasting = p.Position + 2 > p.Length ? (short)0 : (short)p.ReadUInt16BE();
+                        player.LowerManaCost = p.Position + 2 > p.Length ? (short)0 : (short)p.ReadUInt16BE();
+
+                        player.HeatTimer = (short)p.ReadUInt16BE();
+                        player.CriminalTimer = (short)p.ReadUInt16BE();
+                        player.BandageTimer = (short)p.ReadUInt16BE();
+                    }
+                }
+                
+                character.Player = player;
+            }
+        }
 
         private static void CharacterStatus(World world, ref StackDataReader p)
         {
             if (world.Player == null)
             {
+                LoginScene ls = Client.Game.GetScene<LoginScene>();
+
+                if (ls.CurrentLoginStep == LoginSteps.CharacterSelection)
+                {
+                    ServerListCharacterStatus(world, ref p);
+                }
                 return;
             }
 
@@ -5652,18 +5766,22 @@ namespace ClassicUO.Network
 
                 case 0x01: // custom party info
                 case 0x02: // guild track info
-                    bool locations = type == 0x01 || p.ReadBool();
+                    int flags = type == 0x01 ? 0 : p.ReadUInt8();
+                    bool locations = (flags & 0x1) != 0;
+                    bool names = (flags & 0x2) != 0;
 
                     uint serial;
 
                     while ((serial = p.ReadUInt32BE()) != 0)
                     {
+                        string name = names ? p.ReadASCII(30) : null;
+
                         if (locations)
                         {
                             ushort x = p.ReadUInt16BE();
                             ushort y = p.ReadUInt16BE();
                             byte map = p.ReadUInt8();
-                            int hits = type == 1 ? 0 : p.ReadUInt8();
+                            int hits = type == 0x01 ? 0 : p.ReadUInt8();
 
                             world.WMapManager.AddOrUpdate(
                                 serial,
@@ -5672,9 +5790,16 @@ namespace ClassicUO.Network
                                 hits,
                                 map,
                                 type == 0x02,
-                                null,
+                                name,
                                 true
                             );
+                        }
+                        else if (world.WMapManager.Entities.TryGetValue(serial, out WMapEntity entity) && entity != null)
+                        {
+                            if (!string.IsNullOrEmpty(name))
+                            {
+                                entity.Name = name;
+                            }
                         }
                     }
 
@@ -5988,6 +6113,36 @@ namespace ClassicUO.Network
             if (scene != null)
             {
                 scene.UpdateCharacterList(ref p);
+            }
+        }
+
+        private static void ReceiveAccountsList(World world, ref StackDataReader p)
+        {
+            if (world.InGame)
+            {
+                return;
+            }
+
+            LoginScene scene = Client.Game.GetScene<LoginScene>();
+
+            if (scene != null)
+            {
+                scene.ReceiveAccountList(ref p);
+            }
+        }
+        
+        private static void ReceiveCharacterListStats(World world, ref StackDataReader p)
+        {
+            if (world.InGame)
+            {
+                return;
+            }
+
+            LoginScene scene = Client.Game.GetScene<LoginScene>();
+
+            if (scene != null)
+            {
+                scene.ReceiveCharacterListStats(ref p);
             }
         }
 

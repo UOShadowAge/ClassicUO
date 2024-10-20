@@ -556,6 +556,7 @@ namespace ClassicUO.Game.Managers
         UseSkillAnatomy,
         UseSkillAnimalLore,
         UseSkillAnimalTaming,
+        UseSkillArchaeology,
         UseSkillArmsLore,
         UseSkillBegging,
         UseSkillCartography,

@@ -574,6 +574,15 @@ namespace ClassicUO.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Center.
+        /// </summary>
+        public static string Center {
+            get {
+                return ResourceManager.GetString("Center", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Changing language needs restart to take effect.
         /// </summary>
         public static string ChangingLanguageNeedsRestartToTakeEffect {
@@ -2295,6 +2304,15 @@ namespace ClassicUO.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Left.
+        /// </summary>
+        public static string Left {
+            get {
+                return ResourceManager.GetString("Left", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Light level.
         /// </summary>
         public static string LightLevel {
@@ -3279,6 +3297,15 @@ namespace ClassicUO.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Right.
+        /// </summary>
+        public static string Right {
+            get {
+                return ResourceManager.GetString("Right", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Roofs.
         /// </summary>
         public static string Roofs {
@@ -4097,6 +4124,15 @@ namespace ClassicUO.Resources {
         public static string Tooltip {
             get {
                 return ResourceManager.GetString("Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tooltip Align.
+        /// </summary>
+        public static string TooltipAlignment {
+            get {
+                return ResourceManager.GetString("TooltipAlignment", resourceCulture);
             }
         }
         

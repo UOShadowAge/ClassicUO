@@ -141,6 +141,51 @@ namespace ClassicUO.Game.Data
         {
             0, 0x4261, 0x4262, 0x4273, 0x4274, 0x4275, 0x42AA, 0x42AB, 0x42B1
         };
+        private static readonly ushort[] CustomHumanHairColor = new ushort[]
+        {
+            1110, 1111, 1112, 1113, 1114, 1115, 1116, 1117, // First 8 from 1110 set
+            1118, 1119, 1120, 1121, 1122, 1123, 1124, 1125, // First 8 from 1118 set
+            1502, 1503, 1504, 1505, 1506, 1507, 1508, 1509, // First 8 from 1502 set
+            1142, 1143, 1144, 1145, 1146, 1147, 1148, 1149, // First 8 from 1134 set
+            1602, 1603, 1604, 1605, 1606, 1607, 1608, 1609, // First 8 from 1602 set
+            1302, 1303, 1304, 1305, 1306, 1307, 1308, 1309, // First 8 from 1302 set
+            1402, 1403, 1404, 1405, 1406, 1407, 1408, 1409, // First 8 from 1402 set
+            2402, 2403, 2404, 2405, 2406, 2407, 2408, 2409, // First 8 from 2402 set
+            1102, 1103, 1104, 1105, 1106, 1107, 1108, 1109, // First 8 from 1102 set
+        };
+        private static readonly ushort[] CustomHumanSkinTone =
+        {
+            0x03F1, 0x03F9, 0x0401, 0x0409, 0x0411, 0x0419, 0x0421, 0x03EA, 0x03F2, 0x03FA, 0x0402, 0x040A,
+            0x0412, 0x041A, 0x0421, 0x03EB, 0x03F3, 0x03FB, 0x0403, 0x040B, 0x0413, 0x041B, 0x0421, 0x03EC, 0x03F4,
+            0x03FC, 0x0404, 0x040C, 0x0414, 0x041C, 0x0421, 0x03ED, 0x03F5, 0x03FD, 0x0405, 0x040D, 0x0415, 0x041D,
+            0x0421, 0x03EE, 0x03F6, 0x03FE, 0x0406, 0x040E, 0x0416, 0x041E, 0x0421, 0x03EF, 0x03F7, 0x03FF, 0x0407,
+            0x040F, 0x0417, 0x041F, 0x0421, 0x03F0, 0x03F8, 0x0400, 0x0408, 0x0410, 0x0418, 0x0420, 0x0421
+        };
+        
+        private static readonly ushort[] CustomClothingHues = new ushort[]
+        {
+            582, 583, 584, 585, 587, 588, 589, 590, // Greens
+            592, 593, 594, 595, 597, 598, 599, 600, // Blues
+            607, 608, 609, 610, 612, 613, 614, 615, // Purples
+            627, 628, 629, 630, 632, 633, 634, 635, // Reds
+            642, 643, 644, 645, 647, 648, 649, 650, // Oranges
+            652, 653, 654, 655, 657, 658, 659, 660, // Yellows
+            897, 898, 899, 900, 902, 903, 904, 905,  // Emage - Grey
+            472, 492, 507, 518, 532, 543, 549, 553, // Variation
+            168, 177, 187, 197, 217, 223, 237, 243 // Variation
+            
+        };
+
+        
+        public static ushort[] GetCustomHairPallet()
+        {
+            return CustomHumanHairColor;
+        }
+
+        public static ushort[] GetCustomClothesPallet()
+        {
+            return CustomClothingHues;
+        }
 
         public static ushort[] GetSkinPallet(RaceType race)
         {

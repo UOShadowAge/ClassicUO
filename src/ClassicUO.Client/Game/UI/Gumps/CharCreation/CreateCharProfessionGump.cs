@@ -173,26 +173,17 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
 
             ClilocLoader localization = Client.Game.UO.FileManager.Clilocs;
 
-            ResizePic background = new ResizePic(3000)
+            GumpPic pic = new GumpPic(0, 0, info.Graphic, 0);
+            if (info.Name == "Advanced")
             {
-                Width = 175,
-                Height = 34
-            };
+                pic.SetTooltip("Create your own build.  Players can choose up to 150 skill points and 90 stat points.");
+            }
+            else
+            {
+                pic.SetTooltip(localization.GetString(info.Description), 250);
+            }
 
-            background.SetTooltip(localization.GetString(info.Description), 250);
-
-            Add(background);
-
-            Add
-            (
-                new Label(localization.GetString(info.Localization), true, 0x00, font: 1)
-                {
-                    X = 7,
-                    Y = 8
-                }
-            );
-
-            Add(new GumpPic(121, -12, info.Graphic, 0));
+            Add(pic);
         }
 
         public Action<ProfessionInfo> Selected;

@@ -63,6 +63,11 @@ namespace ClassicUO.Game.UI
         {
             if (SerialHelper.IsValid(Serial) && _world.OPL.TryGetRevision(Serial, out uint revision) && _hash != revision)
             {
+                if (Text != null && Text.Contains("Tree\nDurability") && ProfileManager.CurrentProfile.TreeToStumps)
+                {
+                    return false;
+                }
+
                 _hash = revision;
                 Text = ReadProperties(Serial, out _textHTML);
             }
@@ -82,6 +87,7 @@ namespace ClassicUO.Game.UI
             float alpha = 0.7f;
             ushort hue = 0xFFFF;
             float zoom = 1;
+            TEXT_ALIGN_TYPE align = TEXT_ALIGN_TYPE.TS_CENTER;
 
             if (ProfileManager.CurrentProfile != null)
             {
@@ -95,6 +101,8 @@ namespace ClassicUO.Game.UI
 
                 hue = ProfileManager.CurrentProfile.TooltipTextHue;
                 zoom = ProfileManager.CurrentProfile.TooltipDisplayZoom / 100f;
+
+                align = (TEXT_ALIGN_TYPE)ProfileManager.CurrentProfile.TooltipAlignment;
             }
 
             Client.Game.UO.FileManager.Fonts.SetUseHTML(true);
@@ -110,7 +118,7 @@ namespace ClassicUO.Game.UI
                     style: FontStyle.BlackBorder,
                     cell: 5,
                     isHTML: true,
-                    align: TEXT_ALIGN_TYPE.TS_CENTER,
+                    align: align,
                     recalculateWidthByInfo: true,
                     hue: hue
                 );
@@ -132,7 +140,7 @@ namespace ClassicUO.Game.UI
                         font,
                         Text,
                         width,
-                        TEXT_ALIGN_TYPE.TS_CENTER,
+                        align,
                         (ushort) FontStyle.BlackBorder
                     );
 
@@ -148,6 +156,7 @@ namespace ClassicUO.Game.UI
                     _renderedText.MaxWidth = _maxWidth;
                 }
 
+                _renderedText.Align = align;
                 _renderedText.Font = font;
                 _renderedText.Hue = hue;
                 _renderedText.Text = _textHTML;
@@ -268,6 +277,20 @@ namespace ClassicUO.Game.UI
                     {
                         if (!string.IsNullOrEmpty(name))
                         {
+                            int t1, t2;
+
+                            if ((t1 = name.IndexOf('>')) > 0 && (t2 = name.IndexOf('<', ++t1)) >= t1)
+                            {
+                                var raw = name.Substring(t1, t2 - t1);
+
+                                if (char.IsWhiteSpace(raw, 0) || char.IsWhiteSpace(raw, raw.Length - 1))
+                                {
+                                    name = name.Replace(raw, raw.Trim());
+                                }
+                            }
+
+                            name = name.Trim();
+
                             if (SerialHelper.IsItem(serial))
                             {
                                 sbHTML.Append("<basefont color=\"yellow\">");

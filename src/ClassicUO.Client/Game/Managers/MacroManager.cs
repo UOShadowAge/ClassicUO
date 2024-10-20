@@ -2384,6 +2384,7 @@ namespace ClassicUO.Game.Managers
         Anatomy, //Skills group
         AnimalLore,
         AnimalTaming,
+        Archaeology,
         ArmsLore,
         Begging,
         Cartography,

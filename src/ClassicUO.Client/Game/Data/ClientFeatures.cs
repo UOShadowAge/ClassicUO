@@ -63,7 +63,7 @@ namespace ClassicUO.Game.Data
         public bool TooltipsEnabled { get; private set; } = true;
         public bool PopupEnabled { get; private set; }
         public bool PaperdollBooks { get; private set; }
-        public uint MaxChars { get; private set; } = 5;
+        public uint MaxChars { get; private set; } = 4;
 
         public void SetFlags(CharacterListFlags flags)
         {

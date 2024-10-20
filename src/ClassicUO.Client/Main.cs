@@ -340,6 +340,12 @@ namespace ClassicUO
 
                         break;
 
+                    case "lastaccountname":
+                    case "lastaccount":
+                        LastAccountManager.OverrideLastAccount(value);
+
+                        break;
+
                     case "lastcharactername":
                     case "lastcharname":
                         LastCharacterManager.OverrideLastCharacter(value);

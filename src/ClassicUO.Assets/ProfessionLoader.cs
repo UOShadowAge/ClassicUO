@@ -60,7 +60,15 @@ namespace ClassicUO.Assets
             );
         }
 
-
+        // public static readonly int[,] _VoidSkills = new int[4, 2]
+        // {
+        //     { 0, InitialSkillValue }, { 0, InitialSkillValue },
+        //     { 0,  InitialSkillValue }, { 0, 0 }
+        // };
+        // public static readonly int[] _VoidStats = new int[3] { 60, RemainStatValue, RemainStatValue };
+        // public static int InitialSkillValue => 50 ;
+        // public static int RemainStatValue => UOFileManager.Version >= ClientVersion.CV_70160 ? 15 : 10;
+        //
         public string Name { get; set; }
         public string TrueName { get; set; }
         public int Localization { get; set; }
@@ -71,6 +79,8 @@ namespace ClassicUO.Assets
         public bool TopLevel { get; set; }
         public int[,] SkillDefVal { get; set; }
         public int[] StatsVal { get; set; }
+        // public int[,] SkillDefVal { get; set; } = _VoidSkills;
+        // public int[] StatsVal { get; set; } = _VoidStats;
         public List<string> Children { get; set; }
     }
 

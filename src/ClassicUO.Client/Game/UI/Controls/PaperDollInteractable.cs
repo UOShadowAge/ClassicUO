@@ -31,6 +31,7 @@
 #endregion
 
 using System.Collections.Generic;
+using System.Linq;
 using ClassicUO.Configuration;
 using ClassicUO.Game.Data;
 using ClassicUO.Game.GameObjects;
@@ -38,6 +39,8 @@ using ClassicUO.Game.Managers;
 using ClassicUO.Game.UI.Gumps;
 using ClassicUO.Input;
 using ClassicUO.Assets;
+using ClassicUO.Game.Scenes;
+using ClassicUO.Game.UI.Gumps.Login;
 using ClassicUO.Utility;
 using ClassicUO.Utility.Logging;
 using Microsoft.Xna.Framework;
@@ -103,8 +106,10 @@ namespace ClassicUO.Game.UI.Controls
         private readonly PaperDollGump _paperDollGump;
 
         private bool _updateUI;
+        private int? _width;
+        private int? _height;
 
-        public PaperDollInteractable(int x, int y, uint serial, PaperDollGump paperDollGump)
+        public PaperDollInteractable(int x, int y, uint serial, PaperDollGump paperDollGump, int? width = null, int? height = null)
         {
             X = x;
             Y = y;
@@ -112,6 +117,8 @@ namespace ClassicUO.Game.UI.Controls
             AcceptMouseInput = false;
             LocalSerial = serial;
             _updateUI = true;
+            _height = height;
+            _width = width;
         }
 
         public bool HasFakeItem { get; private set; }
@@ -142,6 +149,16 @@ namespace ClassicUO.Game.UI.Controls
             }
 
             Mobile mobile = _paperDollGump.World.Mobiles.Get(LocalSerial);
+            LoginScene loginScene = Client.Game.GetScene<LoginScene>();
+            if (mobile == null && loginScene.CurrentLoginStep == LoginSteps.CharacterSelection)
+            {
+                var characterListGump = UIManager.Gumps.OfType<CharacterSelectionGump>().FirstOrDefault();
+
+                if (characterListGump != null && loginScene.Characters[characterListGump._selectedCharacter]?.Player != null)
+                {
+                    mobile = loginScene.Characters[characterListGump._selectedCharacter].Player;
+                }
+            }
 
             if (mobile == null || mobile.IsDestroyed)
             {
@@ -195,17 +212,56 @@ namespace ClassicUO.Game.UI.Controls
             }
 
             // body
-            Add(new GumpPic(0, 0, body, hue) { IsPartialHue = true });
 
-            if (mobile.Graphic == 0x03DB)
+            if (_width != null && _height != null)
             {
-                Add(
-                    new GumpPic(0, 0, 0xC72B, mobile.Hue)
+                Add
+                (
+                    new GumpPic(0, 0, body, hue)
                     {
-                        AcceptMouseInput = true,
+                        IsPartialHue = true,
+                        Width = (int)_width,
+                        Height = (int)_height
+                    }
+                );
+            }
+            else
+            {
+                Add
+                (
+                    new GumpPic(0, 0, body, hue)
+                    {
                         IsPartialHue = true
                     }
                 );
+            }
+            
+            if (mobile.Graphic == 0x03DB)
+            {
+                if (_width != null && _height != null)
+                {
+                    Add
+                    (
+                        new GumpPic(0, 0, 0xC72B, mobile.Hue)
+                        {
+                            AcceptMouseInput = true,
+                            IsPartialHue = true,
+                            Width = (int)_width,
+                            Height = (int)_height
+                        }
+                    );
+                }
+                else
+                {
+                    Add
+                    (
+                        new GumpPic(0, 0, 0xC72B, mobile.Hue)
+                        {
+                            AcceptMouseInput = true,
+                            IsPartialHue = true,
+                        }
+                    );
+                }
             }
 
             // equipment
@@ -282,28 +338,61 @@ namespace ClassicUO.Game.UI.Controls
                         equipItem.ItemData.AnimID,
                         mobile.IsFemale
                     );
+                    
+                    if (_width != null && _height != null)
+                    {
+                        Add
+                        (
+                            new GumpPicEquipment
+                            (
+                                _paperDollGump,
+                                equipItem.Serial,
+                                layer == Layer.Hair ? -1 : 0,
+                                0,
+                                id,
+                                (ushort) (equipItem.Hue & 0x3FFF),
+                                layer
+                            )
+                            {
+                                AcceptMouseInput = true,
+                                IsPartialHue = equipItem.ItemData.IsPartialHue,
+                                CanLift =
+                                    _paperDollGump.World.InGame
+                                    && !_paperDollGump.World.Player.IsDead
+                                    && layer != Layer.Beard
+                                    && layer != Layer.Hair
+                                    && (_paperDollGump.CanLift || LocalSerial == _paperDollGump.World.Player),
+                                Width = (int)_width,
+                                Height = (int)_height
+                            }
+                        );
+                    }
+                    else
+                    {
+                        Add(
+                            new GumpPicEquipment(
+                                _paperDollGump,
+                                equipItem.Serial,
+                                0,
+                                0,
+                                id,
+                                (ushort)(equipItem.Hue & 0x3FFF),
+                                layer
+                            )
+                            {
+                                AcceptMouseInput = true,
+                                IsPartialHue = equipItem.ItemData.IsPartialHue,
+                                CanLift =
+                                    _paperDollGump.World.InGame
+                                    && !_paperDollGump.World.Player.IsDead
+                                    && layer != Layer.Beard
+                                    && layer != Layer.Hair
+                                    && (_paperDollGump.CanLift || LocalSerial == _paperDollGump.World.Player)
+                            }
+                        );
+                    }
 
-                    Add(
-                        new GumpPicEquipment(
-                            _paperDollGump,
-                            equipItem.Serial,
-                            0,
-                            0,
-                            id,
-                            (ushort)(equipItem.Hue & 0x3FFF),
-                            layer
-                        )
-                        {
-                            AcceptMouseInput = true,
-                            IsPartialHue = equipItem.ItemData.IsPartialHue,
-                            CanLift =
-                                _paperDollGump.World.InGame
-                                && !_paperDollGump.World.Player.IsDead
-                                && layer != Layer.Beard
-                                && layer != Layer.Hair
-                                && (_paperDollGump.CanLift || LocalSerial == _paperDollGump.World.Player)
-                        }
-                    );
+                    
                 }
                 else if (
                     HasFakeItem
@@ -318,23 +407,48 @@ namespace ClassicUO.Game.UI.Controls
                         Client.Game.UO.GameCursor.ItemHold.ItemData.AnimID,
                         mobile.IsFemale
                     );
-
-                    Add(
-                        new GumpPicEquipment(
-                            _paperDollGump,
-                            0,
-                            0,
-                            0,
-                            id,
-                            (ushort)(Client.Game.UO.GameCursor.ItemHold.Hue & 0x3FFF),
-                            Client.Game.UO.GameCursor.ItemHold.Layer
-                        )
-                        {
-                            AcceptMouseInput = true,
-                            IsPartialHue = Client.Game.UO.GameCursor.ItemHold.IsPartialHue,
-                            Alpha = 0.5f
-                        }
-                    );
+                    
+                    if (_width != null && _height != null)
+                    {
+                        Add(
+                            new GumpPicEquipment(
+                                _paperDollGump,
+                                0,
+                                0,
+                                0,
+                                id,
+                                (ushort)(Client.Game.UO.GameCursor.ItemHold.Hue & 0x3FFF),
+                                Client.Game.UO.GameCursor.ItemHold.Layer
+                            )
+                            {
+                                AcceptMouseInput = true,
+                                IsPartialHue = Client.Game.UO.GameCursor.ItemHold.IsPartialHue,
+                                Alpha = 0.5f,
+                                Width = (int)_width,
+                                Height = (int)_height
+                            }
+                        );
+                    }
+                    else
+                    {
+                        Add(
+                            new GumpPicEquipment(
+                                _paperDollGump,
+                                0,
+                                0,
+                                0,
+                                id,
+                                (ushort)(Client.Game.UO.GameCursor.ItemHold.Hue & 0x3FFF),
+                                Client.Game.UO.GameCursor.ItemHold.Layer
+                            )
+                            {
+                                AcceptMouseInput = true,
+                                IsPartialHue = Client.Game.UO.GameCursor.ItemHold.IsPartialHue,
+                                Alpha = 0.5f,
+                            }
+                        );
+                    }
+                    
                 }
             }
 
@@ -391,20 +505,43 @@ namespace ClassicUO.Game.UI.Controls
                     bx = 6;
                 }
 
-                Add(
-                    new GumpPicEquipment(
-                        _paperDollGump,
-                        equipItem.Serial,
-                        -bx,
-                        0,
-                        backpackGraphic,
-                        (ushort)(equipItem.Hue & 0x3FFF),
-                        Layer.Backpack
-                    )
-                    {
-                        AcceptMouseInput = true
-                    }
-                );
+                if (_width != null && _height != null)
+                {
+                    Add(
+                        new GumpPicEquipment(
+                            _paperDollGump,
+                            equipItem.Serial,
+                            -bx,
+                            0,
+                            backpackGraphic,
+                            (ushort)(equipItem.Hue & 0x3FFF),
+                            Layer.Backpack
+                        )
+                        {
+                            AcceptMouseInput = true,
+                            Width = (int)_width,
+                            Height = (int)_height
+                        }
+                    );
+                }
+                else
+                {
+                    Add(
+                        new GumpPicEquipment(
+                            _paperDollGump,
+                            equipItem.Serial,
+                            -bx,
+                            0,
+                            backpackGraphic,
+                            (ushort)(equipItem.Hue & 0x3FFF),
+                            Layer.Backpack
+                        )
+                        {
+                            AcceptMouseInput = true
+                        }
+                    );
+                }
+                
             }
         }
 

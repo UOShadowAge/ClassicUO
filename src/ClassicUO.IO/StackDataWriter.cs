@@ -299,7 +299,7 @@ namespace ClassicUO.IO
 
             if (string.IsNullOrEmpty(str))
             {
-                WriteZero(sizeof(byte));
+                WriteZero(1);
             }
             else
             {
@@ -311,7 +311,7 @@ namespace ClassicUO.IO
 
             if (length > -1 && Position > start)
             {
-                WriteZero(length * sizeof(byte) - (Position - start));
+                WriteZero(length - (Position - start));
             }
         }
 
