@@ -303,7 +303,7 @@ namespace ClassicUO.Game.UI.Gumps
             Add(_slots[5] = new EquipmentSlot(0, 2, 75 + 21 * 5, Layer.Tunic, this));
 
             // Paperdoll control!
-            _paperDollInteractable = new PaperDollInteractable(8, 19, LocalSerial, this);
+            _paperDollInteractable = new PaperDollInteractable(World, 8, 19, LocalSerial, this);
             Add(_paperDollInteractable);
 
             if (showPaperdollBooks)

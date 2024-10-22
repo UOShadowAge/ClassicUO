@@ -49,7 +49,7 @@ namespace ClassicUO.Game.UI.Gumps.Login
         private const ushort BANNED_COLOR = 0x0384;
         private uint _selectedAccount;
 
-        public AccountSelectionGump() : base(0, 0)
+        public AccountSelectionGump(World world) : base(world, 0, 0)
         {
             CanCloseWithRightClick = false;
 

@@ -108,9 +108,11 @@ namespace ClassicUO.Game.UI.Controls
         private bool _updateUI;
         private int? _width;
         private int? _height;
+        private World _world;
 
-        public PaperDollInteractable(int x, int y, uint serial, PaperDollGump paperDollGump, int? width = null, int? height = null)
+        public PaperDollInteractable(World world, int x, int y, uint serial, PaperDollGump paperDollGump, int? width = null, int? height = null)
         {
+            _world = world;
             X = x;
             Y = y;
             _paperDollGump = paperDollGump;
@@ -122,6 +124,7 @@ namespace ClassicUO.Game.UI.Controls
         }
 
         public bool HasFakeItem { get; private set; }
+
 
         public override void Update()
         {
@@ -148,7 +151,7 @@ namespace ClassicUO.Game.UI.Controls
                 return;
             }
 
-            Mobile mobile = _paperDollGump.World.Mobiles.Get(LocalSerial);
+            Mobile mobile = _world.Mobiles.Get(LocalSerial);
             LoginScene loginScene = Client.Game.GetScene<LoginScene>();
             if (mobile == null && loginScene.CurrentLoginStep == LoginSteps.CharacterSelection)
             {
@@ -308,6 +311,7 @@ namespace ClassicUO.Game.UI.Controls
                 layers = _layerOrder;
             }
 
+
             for (int i = 0; i < layers.Length; i++)
             {
                 Layer layer = layers[i];
@@ -345,6 +349,7 @@ namespace ClassicUO.Game.UI.Controls
                         (
                             new GumpPicEquipment
                             (
+                                _world,
                                 _paperDollGump,
                                 equipItem.Serial,
                                 layer == Layer.Hair ? -1 : 0,
@@ -357,11 +362,11 @@ namespace ClassicUO.Game.UI.Controls
                                 AcceptMouseInput = true,
                                 IsPartialHue = equipItem.ItemData.IsPartialHue,
                                 CanLift =
-                                    _paperDollGump.World.InGame
-                                    && !_paperDollGump.World.Player.IsDead
+                                    _world.InGame
+                                    && !_world.Player.IsDead
                                     && layer != Layer.Beard
                                     && layer != Layer.Hair
-                                    && (_paperDollGump.CanLift || LocalSerial == _paperDollGump.World.Player),
+                                    && (_paperDollGump.CanLift || LocalSerial == _world.Player),
                                 Width = (int)_width,
                                 Height = (int)_height
                             }
@@ -371,6 +376,7 @@ namespace ClassicUO.Game.UI.Controls
                     {
                         Add(
                             new GumpPicEquipment(
+                                _world,
                                 _paperDollGump,
                                 equipItem.Serial,
                                 0,
@@ -383,11 +389,11 @@ namespace ClassicUO.Game.UI.Controls
                                 AcceptMouseInput = true,
                                 IsPartialHue = equipItem.ItemData.IsPartialHue,
                                 CanLift =
-                                    _paperDollGump.World.InGame
-                                    && !_paperDollGump.World.Player.IsDead
+                                    _world.InGame
+                                    && !_world.Player.IsDead
                                     && layer != Layer.Beard
                                     && layer != Layer.Hair
-                                    && (_paperDollGump.CanLift || LocalSerial == _paperDollGump.World.Player)
+                                    && (_paperDollGump.CanLift || LocalSerial == _world.Player)
                             }
                         );
                     }
@@ -412,6 +418,7 @@ namespace ClassicUO.Game.UI.Controls
                     {
                         Add(
                             new GumpPicEquipment(
+                                _world,
                                 _paperDollGump,
                                 0,
                                 0,
@@ -433,6 +440,7 @@ namespace ClassicUO.Game.UI.Controls
                     {
                         Add(
                             new GumpPicEquipment(
+                                _world,
                                 _paperDollGump,
                                 0,
                                 0,
@@ -461,7 +469,7 @@ namespace ClassicUO.Game.UI.Controls
                 );
 
                 // If player, apply backpack skin
-                if (mobile.Serial == _paperDollGump.World.Player.Serial)
+                if (mobile.Serial == _world.Player.Serial)
                 {
                     var gump = Client.Game.UO.Gumps;
 
@@ -500,7 +508,7 @@ namespace ClassicUO.Game.UI.Controls
 
                 int bx = 0;
 
-                if (_paperDollGump.World.ClientFeatures.PaperdollBooks)
+                if (_world.ClientFeatures.PaperdollBooks)
                 {
                     bx = 6;
                 }
@@ -509,6 +517,7 @@ namespace ClassicUO.Game.UI.Controls
                 {
                     Add(
                         new GumpPicEquipment(
+                            _world,
                             _paperDollGump,
                             equipItem.Serial,
                             -bx,
@@ -528,6 +537,7 @@ namespace ClassicUO.Game.UI.Controls
                 {
                     Add(
                         new GumpPicEquipment(
+                            _world,
                             _paperDollGump,
                             equipItem.Serial,
                             -bx,
@@ -612,8 +622,10 @@ namespace ClassicUO.Game.UI.Controls
         {
             private readonly Layer _layer;
             private readonly Gump _gump;
+            private readonly World _world;
 
             public GumpPicEquipment(
+                World world,
                 Gump gump,
                 uint serial,
                 int x,
@@ -623,12 +635,13 @@ namespace ClassicUO.Game.UI.Controls
                 Layer layer
             ) : base(x, y, graphic, hue)
             {
+                _world = world;
                 _gump = gump;
                 LocalSerial = serial;
                 CanMove = false;
                 _layer = layer;
 
-                if (SerialHelper.IsValid(serial) && _gump.World.InGame)
+                if (SerialHelper.IsValid(serial) && _world.InGame)
                 {
                     SetTooltip(serial);
                 }
@@ -644,9 +657,9 @@ namespace ClassicUO.Game.UI.Controls
                 }
 
                 // this check is necessary to avoid crashes during character creation
-                if (_gump.World.InGame)
+                if (_world.InGame)
                 {
-                    GameActions.DoubleClick(_gump.World, LocalSerial);
+                    GameActions.DoubleClick(_world, LocalSerial);
                 }
 
                 return true;
@@ -654,7 +667,7 @@ namespace ClassicUO.Game.UI.Controls
 
             protected override void OnMouseUp(int x, int y, MouseButtonType button)
             {
-                SelectedObject.Object = _gump.World.Get(LocalSerial);
+                SelectedObject.Object = _world.Get(LocalSerial);
                 base.OnMouseUp(x, y, button);
             }
 
@@ -662,7 +675,7 @@ namespace ClassicUO.Game.UI.Controls
             {
                 base.Update();
 
-                if (_gump.World.InGame)
+                if (_world.InGame)
                 {
                     if (
                         CanLift
@@ -678,23 +691,23 @@ namespace ClassicUO.Game.UI.Controls
                         )
                     )
                     {
-                        GameActions.PickUp(_gump.World, LocalSerial, 0, 0);
+                        GameActions.PickUp(_world, LocalSerial, 0, 0);
 
                         if (_layer == Layer.OneHanded || _layer == Layer.TwoHanded)
                         {
-                            _gump.World.Player.UpdateAbilities();
+                            _world.Player.UpdateAbilities();
                         }
                     }
                     else if (MouseIsOver)
                     {
-                        SelectedObject.Object = _gump.World.Get(LocalSerial);
+                        SelectedObject.Object = _world.Get(LocalSerial);
                     }
                 }
             }
 
             protected override void OnMouseOver(int x, int y)
             {
-                SelectedObject.Object = _gump.World.Get(LocalSerial);
+                SelectedObject.Object = _world.Get(LocalSerial);
             }
         }
     }

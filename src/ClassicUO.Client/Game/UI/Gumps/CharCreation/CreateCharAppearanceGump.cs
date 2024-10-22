@@ -59,6 +59,7 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
             public bool IsSoloSelfFound;
         }
 
+        private World _world;
         private PlayerMobile _character;
         private CharacterInfo _characterInfo;
         private readonly Button _humanRadio, _elfRadio, _gargoyleRadio;
@@ -83,6 +84,8 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
 
         public CreateCharAppearanceGump(World world) : base(world, 0, 0)
         {
+            _world = world;
+            
             // Background
             Add
             (
@@ -371,7 +374,7 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
 
         private void HandleProfessions()
         {
-            var professions = new List<ProfessionInfo>(ProfessionLoader.Instance.Professions.Keys);
+            var professions = new List<ProfessionInfo>(Client.Game.UO.FileManager.Professions.Professions.Keys);
             
             for (int i = 0; i < professions.Count; i++)
             {
@@ -409,9 +412,9 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
         
         public void SelectProfession(ProfessionInfo info)
         {
-            if (info.Type == ProfessionLoader.PROF_TYPE.CATEGORY && ProfessionLoader.Instance.Professions.TryGetValue(info, out List<ProfessionInfo> list) && list != null)
+            if (info.Type == ProfessionLoader.PROF_TYPE.CATEGORY && Client.Game.UO.FileManager.Professions.Professions.TryGetValue(info, out List<ProfessionInfo> list) && list != null)
             {
-                Parent.Add(new CreateCharProfessionGump(info));
+                Parent.Add(new CreateCharProfessionGump(_world, info));
                 Parent.Remove(this);
             }
             else
@@ -431,12 +434,12 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
         {
             if (_createCharTradeGump == null)
             {
-                Add( _createCharTradeGump = new CreateCharTradeGump(_character, info));
+                Add( _createCharTradeGump = new CreateCharTradeGump(_world, _character, info));
             }
             else
             {
                 _createCharTradeGump.Clear();
-                Add( _createCharTradeGump = new CreateCharTradeGump(_character, info));
+                Add( _createCharTradeGump = new CreateCharTradeGump(_world, _character, info));
             }
         }
 
@@ -472,7 +475,7 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
             
             Add
             (
-                _paperDoll = new PaperDollInteractable(518, 235, _character, null, 375, 350)
+                _paperDoll = new PaperDollInteractable(_world, 518, 235, _character, null, 375, 350)
                 {
                     AcceptMouseInput = false,
                 }, 1
@@ -813,7 +816,7 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
 
             Add
             (
-                colorPicker = new CustomColorPicker(layer, clilocLabel, pallet, rows, columns)
+                colorPicker = new CustomColorPicker(this, layer, clilocLabel, pallet, rows, columns)
                 {
                     X = x,
                     Y = y,
@@ -1119,14 +1122,14 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
 
                 if (duplicated > 0)
                 {
-                    UIManager.GetGump<CharCreationGump>()?.ShowMessage(ClilocLoader.Instance.GetString(1080032));
+                    UIManager.GetGump<CharCreationGump>()?.ShowMessage(Client.Game.UO.FileManager.Clilocs.GetString(1080032));
 
                     return false;
                 }
             }
             else
             {
-                UIManager.GetGump<CharCreationGump>()?.ShowMessage(Client.Version <= ClientVersion.CV_5090 ? ResGumps.YouMustHaveThreeUniqueSkillsChosen : ClilocLoader.Instance.GetString(1080032));
+                UIManager.GetGump<CharCreationGump>()?.ShowMessage(Client.Game.UO.Version <= ClientVersion.CV_5090 ? ResGumps.YouMustHaveThreeUniqueSkillsChosen : Client.Game.UO.FileManager.Clilocs.GetString(1080032));
 
                 return false;
             }
@@ -1634,7 +1637,7 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
 
             public event EventHandler<ColorSelectedEventArgs> ColorSelected;
 
-            public CustomColorTablePicker(CreateCharAppearanceGump parent, int x, int y, int cellWidth, int cellHeight, int columns, int rows, ushort[] hues, Layer layer) : base(0, 0)
+            public CustomColorTablePicker(CreateCharAppearanceGump parent, int x, int y, int cellWidth, int cellHeight, int columns, int rows, ushort[] hues, Layer layer) : base(parent._world, 0, 0)
             {
                 _parent = parent;
                 X = x;

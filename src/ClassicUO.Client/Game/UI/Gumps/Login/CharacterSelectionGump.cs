@@ -78,12 +78,12 @@ namespace ClassicUO.Game.UI.Gumps.Login
 
             LoginScene loginScene = Client.Game.GetScene<LoginScene>();
 
-            string lastAccName = LastAccountManager.GetLastAccountSafe(LoginScene.Username, World.ServerName);
-            string lastCharName = LastCharacterManager.GetLastCharacter(LoginScene.Username, World.ServerName, lastAccName);
+            string lastAccName = LastAccountManager.GetLastAccountSafe(LoginScene.Username, world.ServerName);
+            string lastCharName = LastCharacterManager.GetLastCharacter(LoginScene.Username, world.ServerName, lastAccName);
             string lastSelected = loginScene.Characters.FirstOrDefault(o => o.Name == lastCharName)?.Name;
 
-            LockedFeatureFlags f = World.ClientLockedFeatures.Flags;
-            CharacterListFlags ff = World.ClientFeatures.Flags;
+            LockedFeatureFlags f = world.ClientLockedFeatures.Flags;
+            CharacterListFlags ff = world.ClientFeatures.Flags;
 
             if (Client.Game.UO.Version >= ClientVersion.CV_6040 || Client.Game.UO.Version >= ClientVersion.CV_5020 && loginScene.Characters.Length > 5)
             {
@@ -108,14 +108,14 @@ namespace ClassicUO.Game.UI.Gumps.Login
                 {
                     v++;
 
-                    if (v > World.ClientFeatures.MaxChars)
+                    if (v > world.ClientFeatures.MaxChars)
                     {
                         break;
                     }
 
-                    if (World.ClientLockedFeatures.Flags != 0 && !World.ClientLockedFeatures.Flags.HasFlag(LockedFeatureFlags.SeventhCharacterSlot))
+                    if (world.ClientLockedFeatures.Flags != 0 && !world.ClientLockedFeatures.Flags.HasFlag(LockedFeatureFlags.SeventhCharacterSlot))
                     {
-                        if (v == 6 && !World.ClientLockedFeatures.Flags.HasFlag(LockedFeatureFlags.SixthCharacterSlot))
+                        if (v == 6 && !world.ClientLockedFeatures.Flags.HasFlag(LockedFeatureFlags.SixthCharacterSlot))
                         {
                             break;
                         }
@@ -147,7 +147,7 @@ namespace ClassicUO.Game.UI.Gumps.Login
                     {
                         Add
                         (
-                            new PaperdollControl(_CHARACTER_POSITIONS[i].X, _CHARACTER_POSITIONS[i].Y, ctr.Player, ctr, null, i >= 4 ? 300 : 350, i >= 4 ? 300 : 350)
+                            new PaperdollControl(world, _CHARACTER_POSITIONS[i].X, _CHARACTER_POSITIONS[i].Y, ctr.Player, ctr, null, i >= 4 ? 300 : 350, i >= 4 ? 300 : 350)
                             {
                                 AcceptMouseInput = false,
                             }, 1

@@ -156,7 +156,7 @@ namespace ClassicUO.Game.UI.Gumps
             Add(new GumpPic(185, 25, 0x708, 0));
             Add
             (
-                paperDollInteractable = new CustomPaperDollGump(this, 210, 75, fakeMobile, hair, beard)
+                paperDollInteractable = new CustomPaperDollGump(World, this, 210, 75, fakeMobile, hair, beard)
                 {
                     AcceptMouseInput = false
                 }
@@ -664,14 +664,16 @@ namespace ClassicUO.Game.UI.Gumps
         /// </summary>
         private class CustomPaperDollGump : PaperDollInteractable
         {
+            private readonly World _world;
             private readonly Gump _gump;
             private readonly Mobile playerMobile;
             private Item hair;
             private Item beard;
             private bool requestUpdate = false;
 
-            public CustomPaperDollGump(Gump gump, int x, int y, Mobile playerMobile, Item hair, Item beard) : base(x, y, playerMobile, new PaperDollGump(gump.World))
+            public CustomPaperDollGump(World world, Gump gump, int x, int y, Mobile playerMobile, Item hair, Item beard) : base(gump.World, x, y, playerMobile, new PaperDollGump(gump.World))
             {
+                _world = world;
                 _gump = gump;
                 this.playerMobile = playerMobile;
                 this.hair = hair;
@@ -771,6 +773,7 @@ namespace ClassicUO.Game.UI.Gumps
                     (
                         new GumpPicEquipment
                         (
+                            _world,
                             _gump,
                             hair.Serial,
                             0,
@@ -795,6 +798,7 @@ namespace ClassicUO.Game.UI.Gumps
                     (
                         new GumpPicEquipment
                         (
+                            _world,
                             _gump,
                             beard.Serial,
                             0,

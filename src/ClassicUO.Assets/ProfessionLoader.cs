@@ -46,7 +46,7 @@ namespace ClassicUO.Assets
 
         public static (int[,] defaultSkillsValues, int[] defaultStatsValues) GetDefaults(ClientVersion clientVersion)
         {
-            int initialSkillValue = clientVersion >= ClientVersion.CV_70160 ? 30 : 50;
+            int initialSkillValue = 50;
             int remainStatValue = clientVersion >= ClientVersion.CV_70160 ? 15 : 10;
 
             return
@@ -54,7 +54,7 @@ namespace ClassicUO.Assets
                 new int[4, 2]
                 {
                     { 0, initialSkillValue }, { 0, initialSkillValue },
-                    { 0, clientVersion < ClientVersion.CV_70160 ? 0 : initialSkillValue }, { 0, initialSkillValue }
+                    { 0, clientVersion < ClientVersion.CV_70160 ? 0 : initialSkillValue }, { 0, 0 }
                 },
                 new int[3] { 60, remainStatValue, remainStatValue }
             );

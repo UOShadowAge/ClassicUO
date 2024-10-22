@@ -1,4 +1,4 @@
-﻿#region license
+﻿﻿#region license
 
 // Copyright (c) 2021, andreakarasho
 // All rights reserved.
@@ -63,10 +63,10 @@ namespace ClassicUO.Game.Managers
 
             if (!File.Exists(_lastAccountFile))
             {
-                ConfigurationResolver.Save(LastAccounts, _lastAccountFile, LastAccountJsonContext.Default);
+                ConfigurationResolver.Save(LastAccounts, _lastAccountFile, LastAccountJsonContext.Default.ListLastAccountInfo);
             }
 
-            LastAccounts = ConfigurationResolver.Load<List<LastAccountInfo>>(_lastAccountFile, LastAccountJsonContext.Default);
+            LastAccounts = ConfigurationResolver.Load<List<LastAccountInfo>>(_lastAccountFile, LastAccountJsonContext.Default.ListLastAccountInfo);
 
             // safety check
             if (LastAccounts == null)
@@ -99,7 +99,7 @@ namespace ClassicUO.Game.Managers
                 });
             }
 
-            ConfigurationResolver.Save(LastAccounts, _lastAccountFile, LastAccountJsonContext.Default);
+            ConfigurationResolver.Save(LastAccounts, _lastAccountFile, LastAccountJsonContext.Default.ListLastAccountInfo);
         }
 
         public static string GetLastAccountSafe(string login, string server)

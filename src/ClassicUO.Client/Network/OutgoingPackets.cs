@@ -550,7 +550,7 @@ namespace ClassicUO.Network
         {
             const byte ID = 0xE9;
 
-            int length = PacketsTable.GetPacketLength(ID);
+            int length = socket.PacketsTable.GetPacketLength(ID);
 
             var writer = new StackDataWriter(length < 0 ? 64 : length);
             writer.WriteUInt8(ID);

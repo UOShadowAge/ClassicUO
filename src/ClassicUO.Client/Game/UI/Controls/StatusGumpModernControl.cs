@@ -18,7 +18,7 @@ namespace ClassicUO.Game.UI
     {
         public PlayerMobile Player;
 
-        protected StatusGumpBaseControl(PlayerMobile pm = null) : base(0, 0)
+        protected StatusGumpBaseControl(World world, PlayerMobile pm = null) : base(world, 0, 0)
         {
             Player = pm != null ? pm : World.Player;
 
@@ -46,7 +46,7 @@ namespace ClassicUO.Game.UI
             }
         }
 
-        public StatusGumpModernControl(PlayerMobile player)
+        public StatusGumpModernControl(World world, PlayerMobile player): base(world, player)
         {
             // Ensure _labels array is initialized before anything else
             _labels = new Label[(int)MobileStats.NumStats];

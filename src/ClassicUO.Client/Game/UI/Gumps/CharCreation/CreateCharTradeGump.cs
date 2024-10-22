@@ -51,11 +51,12 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
         public readonly CustomCombobox[] _skillsCombobox;
         public readonly CustomHSliderBar[] _skillSliders;
         public readonly List<SkillEntry> _skillList;
-
+        private World _world;
 
 
         public CreateCharTradeGump(World world, PlayerMobile character, ProfessionInfo profession) : base(world, 0, 0)
         {
+            _world = world;
             _character = character;
 
             foreach (Skill skill in _character.Skills)
@@ -75,7 +76,7 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
             // strength, dexterity, intelligence
             Add
             (
-                new Label(Client.Game.UO.FileManager.Clilocs.GetString(3000111), unicode, 1150, font: 0)
+                new Label("Str:", unicode, 1150, font: 0)
                 {
                     X = 462, Y = 580
                 }
@@ -83,7 +84,7 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
 
             Add
             (
-                new Label(Client.Game.UO.FileManager.Clilocs.GetString(3000112), unicode, 1150, font: 0)
+                new Label("Dex:", unicode, 1150, font: 0)
                 {
                     X = 605, Y = 580
                 }
@@ -91,7 +92,7 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
 
             Add
             (
-                new Label(Client.Game.UO.FileManager.Clilocs.GetString(3000113), unicode, 1150, font: 0)
+                new Label("Int:", unicode, 1150, font: 0)
                 {
                     X = 750, Y = 580
                 }
@@ -111,7 +112,7 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
                     110,
                     10,
                     60,
-                    profession.Name != "Custom" ? profession.StatsVal[0] : ProfessionInfo._VoidStats[0],
+                    profession.Name != "Custom" ? profession.StatsVal[0] : defStatsValues[0],
                     CustomHSliderBarStyle.BlueWidgetNoBar,
                     true
                 )
@@ -129,7 +130,7 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
                     110,
                     10,
                     60,
-                    profession.Name != "Custom" ? profession.StatsVal[1] : ProfessionInfo._VoidStats[1],
+                    profession.Name != "Custom" ? profession.StatsVal[1] : defStatsValues[1],
                     CustomHSliderBarStyle.BlueWidgetNoBar,
                     true
                 )
@@ -147,7 +148,7 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
                     110,
                     10,
                     60,
-                    profession.Name != "Advanced" ? profession.StatsVal[2] : ProfessionInfo._VoidStats[2],
+                    profession.Name != "Advanced" ? profession.StatsVal[2] : defStatsValues[2],
                     CustomHSliderBarStyle.BlueWidgetNoBar,
                     true
                 )
@@ -220,6 +221,7 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
             (
                 _skillsCombobox[0] = new CustomCombobox
                 (
+                    _world,
                     440,
                     645,
                     195,
@@ -243,7 +245,7 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
                     190,
                     0,
                     50,
-                    profession.Name != "Advanced" ? profession.SkillDefVal[0, 1] : ProfessionInfo._VoidSkills[0, 1],
+                    profession.Name != "Advanced" ? profession.SkillDefVal[0, 1] : defSkillsValues[0, 1],
                     CustomHSliderBarStyle.BlueWidgetNoBar,
                     true,
                     0,
@@ -262,6 +264,7 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
             (
                 _skillsCombobox[1] = new CustomCombobox
                 (
+                    _world,
                     655,
                     645,
                     192,
@@ -286,7 +289,7 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
                     187,
                     0,
                     50,
-                    profession.Name != "Advanced" ? profession.SkillDefVal[1, 1] : ProfessionInfo._VoidSkills[1, 1],
+                    profession.Name != "Advanced" ? profession.SkillDefVal[1, 1] : defSkillsValues[1, 1],
                     CustomHSliderBarStyle.BlueWidgetNoBar,
                     true,
                     0,
@@ -305,6 +308,7 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
             (
                 _skillsCombobox[2] = new CustomCombobox
                 (
+                    _world,
                     440,
                     710,
                     195,
@@ -328,7 +332,7 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
                     190,
                     0,
                     50,
-                    profession.Name != "Advanced" ? profession.SkillDefVal[2, 1] : ProfessionInfo._VoidSkills[2, 1],
+                    profession.Name != "Advanced" ? profession.SkillDefVal[2, 1] : defSkillsValues[2, 1],
                     CustomHSliderBarStyle.BlueWidgetNoBar,
                     true,
                     0,
@@ -347,6 +351,7 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
             (
                 _skillsCombobox[3] = new CustomCombobox
                 (
+                    _world,
                     655,
                     710,
                     192,
@@ -370,7 +375,7 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
                     187,
                     0,
                     50,
-                    profession.Name != "Advanced" ? profession.SkillDefVal[3, 1] : ProfessionInfo._VoidSkills[3, 1],
+                    profession.Name != "Advanced" ? profession.SkillDefVal[3, 1] : defSkillsValues[3, 1],
                     CustomHSliderBarStyle.BlueWidgetNoBar,
                     true,
                     0,

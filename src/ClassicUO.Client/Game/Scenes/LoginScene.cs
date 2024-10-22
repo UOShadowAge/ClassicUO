@@ -250,7 +250,7 @@ namespace ClassicUO.Game.Scenes
 
                     return GetLoadingScreen();
 
-                case LoginSteps.AccountSelection: return new AccountSelectionGump();
+                case LoginSteps.AccountSelection: return new AccountSelectionGump(_world);
                 
                 case LoginSteps.CharacterSelection: return new CharacterSelectionGump(_world);
 
@@ -432,7 +432,7 @@ namespace ClassicUO.Game.Scenes
         {
             if (CurrentLoginStep == LoginSteps.AccountSelection)
             {
-                LastAccountManager.Save(Username, World.ServerName, Accounts[index]);
+                LastAccountManager.Save(Username, _world.ServerName, Accounts[index]);
 
                 CurrentLoginStep = LoginSteps.VerifyingAccount;
                 NetClient.Socket.Send_SelectAccount(index, Accounts[index]);
@@ -690,7 +690,7 @@ namespace ClassicUO.Game.Scenes
                 _autoLogin = false;
             }
 
-            string lastAccName = LastAccountManager.GetLastAccount(Username, World.ServerName);
+            string lastAccName = LastAccountManager.GetLastAccount(Username, _world.ServerName);
 
             for (byte i = 0; i < Accounts.Length; i++)
             {
@@ -894,7 +894,7 @@ namespace ClassicUO.Game.Scenes
 
                         if (itemSerial != 0) // Only add items that have a valid serial
                         {
-                            Item item = new Item()
+                            Item item = new Item(loginScene._world)
                             {
                                 Serial = itemSerial,
                                 Graphic = itemID,

@@ -48,9 +48,11 @@ namespace ClassicUO.Game.UI.Controls
         private readonly Label _label;
         private readonly int _maxHeight;
         private int _selectedIndex;
+        private World _world;
 
         public CustomCombobox
         (
+            World world,
             int x,
             int y,
             int width,
@@ -62,6 +64,7 @@ namespace ClassicUO.Game.UI.Controls
             byte font = 3
         )
         {
+            _world = world;
             X = x;
             Y = y;
             Width = width;
@@ -164,6 +167,7 @@ namespace ClassicUO.Game.UI.Controls
             (
                 new CustomComboboxGump
                 (
+                    _world,
                     ScreenCoordinateX,
                     comboY,
                     Width,
@@ -186,6 +190,7 @@ namespace ClassicUO.Game.UI.Controls
 
             public CustomComboboxGump
             (
+                World world,
                 int x,
                 int y,
                 int width,
@@ -193,7 +198,7 @@ namespace ClassicUO.Game.UI.Controls
                 string[] items,
                 byte font,
                 CustomCombobox combobox
-            ) : base(0, 0)
+            ) : base(world, 0, 0)
             {
                 CanMove = false;
                 AcceptMouseInput = true;
