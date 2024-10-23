@@ -45,7 +45,7 @@ namespace ClassicUO.Game.UI.Gumps.Login
     internal class AccountSelectionGump : Gump
     {
         private const ushort SELECTED_COLOR = 0x0021;
-        private const ushort NORMAL_COLOR = 0x034F;
+        private const ushort NORMAL_COLOR = 1150;
         private const ushort BANNED_COLOR = 0x0384;
         private uint _selectedAccount;
 
@@ -56,37 +56,43 @@ namespace ClassicUO.Game.UI.Gumps.Login
             int posInList = 0;
             int yOffset = 150;
             int yBonus = 0;
-            int listTitleY = 106;
+            int listTitleY = 186;
 
             LoginScene loginScene = Client.Game.GetScene<LoginScene>();
             
             string lastAccName = LastAccountManager.GetLastAccount(LoginScene.Username, World.ServerName);
-            string lastSelected = loginScene.Accounts.FirstOrDefault(o => o == lastAccName);
+            string lastSelected = loginScene.Accounts.FirstOrDefault(o => o.Name == lastAccName)?.Name;
 
             if (loginScene.Accounts.Length > 5)
             {
                 listTitleY = 96;
-                yOffset = 125;
+                yOffset = 180;
                 yBonus = 45;
             }
 
             if (!string.IsNullOrEmpty(lastSelected))
             {
-                _selectedAccount = (uint) Array.IndexOf(loginScene.Accounts, lastSelected);
+                _selectedAccount = (uint) Array.FindIndex(loginScene.Accounts, account => account.Name == lastSelected);
             }
             else if (loginScene.Accounts.Length > 0)
             {
                 _selectedAccount = 0;
             }
+            else
+            {
+                _selectedAccount = 0;
+            }
 
-            Add
-            (
-                new ResizePic(0x0A28)
-                {
-                    X = 160, Y = 70, Width = 408, Height = 343 + yBonus
-                },
-                1
-            );
+            Add(new GumpPic(0, 0, 194, 0));
+
+            // Add
+            // (
+            //     new ResizePic(0x0A28)
+            //     {
+            //         X = 160, Y = 70, Width = 408, Height = 343 + yBonus
+            //     },
+            //     1
+            // );
             
             bool isAsianLang = string.Compare(Settings.GlobalSettings.Language, "CHT", StringComparison.InvariantCultureIgnoreCase) == 0 || 
                 string.Compare(Settings.GlobalSettings.Language, "KOR", StringComparison.InvariantCultureIgnoreCase) == 0 ||
@@ -96,38 +102,31 @@ namespace ClassicUO.Game.UI.Gumps.Login
             byte font = (byte)(isAsianLang ? 1 : 2);
             ushort hue = (ushort)(isAsianLang ? 0xFFFF : 0x0386);
 
-            Add
-            (
-                new Label("Account Selection", unicode, hue, font: font)
-                {
-                    X = 267, Y = listTitleY
-                },
-                1
-            );
+            yOffset = 220;
             
             for (int i = 0, valid = 0; i < loginScene.Accounts.Length; i++)
             {
-                string account = loginScene.Accounts[i];
+                var account = loginScene.Accounts[i];
 
-                if (!string.IsNullOrEmpty(account))
+                if (!string.IsNullOrEmpty(account.Name))
                 {
                     valid++;
 
-                    bool isBanned = account.EndsWith(" *");
+                    bool isBanned = account.Name.EndsWith(" *");
 
                     if (isBanned)
                     {
-                        account = account.Substring(0, account.Length - 2);
+                        account.Name = account.Name.Substring(0, account.Name.Length - 2);
                     }
 
                     ushort color = isBanned ? BANNED_COLOR : i == _selectedAccount ? SELECTED_COLOR : NORMAL_COLOR;
 
                     Add
                     (
-                        new AccountEntryGump((uint) i, isBanned, account, SelectAccount, LoginAccount)
+                        new AccountEntryGump((uint) i, color, isBanned, account, SelectAccount, LoginAccount)
                         {
-                            X = 224,
-                            Y = yOffset + posInList * 40,
+                            X = 324,
+                            Y = yOffset + posInList * 80,
                             Hue = color
                         },
                         1
@@ -139,20 +138,31 @@ namespace ClassicUO.Game.UI.Gumps.Login
 
             Add
             (
-                new Button((int) Buttons.Prev, 0x15A1, 0x15A3, 0x15A2)
+                new Button((int) Buttons.Prev, 180, 181, 182)
                 {
-                    X = 586, Y = 445, ButtonAction = ButtonAction.Activate
+                    X = 32, Y = 895, ButtonAction = ButtonAction.Activate
                 },
                 1
             );
-
+            
             Add
             (
-                new Button((int) Buttons.Next, 0x15A4, 0x15A6, 0x15A5)
+                new Button((int) Buttons.Next, 183, 184, 185)
                 {
-                    X = 610, Y = 445, ButtonAction = ButtonAction.Activate
+                    X = 1165, Y = 894, ButtonAction = ButtonAction.Activate
                 },
                 1
+            );
+            
+            // Quit Button
+            Add
+            (
+                new Button((int)Buttons.Quit, 1482, 1481, 1480)
+                {
+                    X = 1197,
+                    Y = 41,
+                    ButtonAction = ButtonAction.Activate
+                }
             );
 
             AcceptKeyboardInput = true;
@@ -182,6 +192,11 @@ namespace ClassicUO.Game.UI.Gumps.Login
                     loginScene.StepBack();
 
                     break;
+                
+                case Buttons.Quit:
+                    Client.Game.Exit();
+
+                    break;
             }
 
             base.OnButtonClick(buttonID);
@@ -194,6 +209,8 @@ namespace ClassicUO.Game.UI.Gumps.Login
             foreach (AccountEntryGump accountGump in FindControls<AccountEntryGump>())
             {
                 accountGump.Hue = accountGump.AccountBanned ? BANNED_COLOR : accountGump.AccountIndex == index ? SELECTED_COLOR : NORMAL_COLOR;
+                accountGump._color = accountGump.Hue;
+                accountGump.UpdateSelection();
             }
         }
 
@@ -201,7 +218,7 @@ namespace ClassicUO.Game.UI.Gumps.Login
         {
             LoginScene loginScene = Client.Game.GetScene<LoginScene>();
 
-            if (loginScene.Accounts.Length > index && !string.IsNullOrEmpty(loginScene.Accounts[index]))
+            if (loginScene.Accounts.Length > index && !string.IsNullOrEmpty(loginScene.Accounts[index].Name))
             {
                 loginScene.SelectAccount(index);
             }
@@ -210,14 +227,19 @@ namespace ClassicUO.Game.UI.Gumps.Login
         private enum Buttons
         {
             Next,
-            Prev
+            Prev,
+            Quit
         }
 
         private class AccountEntryGump : Control
         {
             private readonly Label _label;
+            private readonly Label _characterLabel;
             private readonly Action<uint> _loginFn;
             private readonly Action<uint> _selectedFn;
+            private GumpPic _selectedGump;
+            private GumpPic _backgroundGump;
+            public ushort _color;
 
             public uint AccountIndex { get; }
             public bool AccountBanned { get; }
@@ -228,13 +250,14 @@ namespace ClassicUO.Game.UI.Gumps.Login
                 set => _label.Hue = value;
             }
 
-            public AccountEntryGump(uint index, bool banned, string account, Action<uint> selectedFn, Action<uint> loginFn)
+            public AccountEntryGump(uint index, ushort color, bool banned, Account account, Action<uint> selectedFn, Action<uint> loginFn)
             {
                 AccountIndex = index;
                 AccountBanned = banned;
 
                 _selectedFn = selectedFn;
                 _loginFn = loginFn;
+                _color = color;
 
                 ushort bgColor = 0;
 
@@ -246,30 +269,64 @@ namespace ClassicUO.Game.UI.Gumps.Login
                 // Bg
                 Add
                 (
-                    new ResizePic(0x0BB8)
+                    _backgroundGump = new GumpPic(0, 0, 177, 1)
                     {
-                        X = 0, Y = 0, Width = 280, Height = 30, Hue = bgColor,
+                        Width = 620, Height = 100, Hue = bgColor, Alpha = 0.05f
                     }
                 );
-
+                
+                Add(
+                    _selectedGump = new GumpPic(0, 0, 176, 0)
+                    {
+                        Width = 620, Height = 100, Hue = 0, Alpha = 0.3f, IsVisible = _color == SELECTED_COLOR
+                    });
+                
+                
                 // Account Name
                 Add
                 (
                     _label = new Label
                     (
-                        account,
+                        account.Name,
                         false,
-                        NORMAL_COLOR,
-                        270,
-                        5,
+                        color,
+                        600,
+                        0,
                         align: TEXT_ALIGN_TYPE.TS_CENTER
                     )
                     {
-                        X = 0
+                        X = 20,
+                        Y = 20
                     }
                 );
+                
+                if (account.Characters.Count > 0)
+                {
+                    string charLabel = String.Join(",  ", account.Characters);
+                    Add
+                    (
+                        _characterLabel = new Label(charLabel, false, NORMAL_COLOR, 600, 9, FontStyle.Solid, TEXT_ALIGN_TYPE.TS_CENTER)
+                        {
+                            Y = 55,
+                            X = 20
+                        }
+                    );
+                }
 
                 AcceptMouseInput = !AccountBanned;
+            }
+
+            public void UpdateSelection()
+            {
+                if (_color == SELECTED_COLOR)
+                {
+                    _selectedGump.IsVisible = true;
+                }
+                else
+                {
+                    _selectedGump.IsVisible = false;
+                }
+                    
             }
 
             protected override bool OnMouseDoubleClick(int x, int y, MouseButtonType button)

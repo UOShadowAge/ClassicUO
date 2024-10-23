@@ -202,7 +202,7 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
                     }
                     else if (i == 1)
                     {
-                        x = 350;
+                        x = 415;
                         y = 380;
                     }
                     else
