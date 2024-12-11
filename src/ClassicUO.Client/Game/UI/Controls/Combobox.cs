@@ -59,7 +59,7 @@ namespace ClassicUO.Game.UI.Controls
             int maxHeight = 200,
             bool showArrow = true,
             string emptyString = "",
-            byte font = 0
+            byte font = 9
         )
         {
             X = x;
@@ -76,16 +76,6 @@ namespace ClassicUO.Game.UI.Controls
                 new ResizePic(0x0BB8)
                 {
                     Width = width, Height = Height
-                }
-            );
-            
-            Add
-            (
-                new GumpPic(X, Y, 178, 0)
-                {
-                    Height = Height,
-                    Width = width,
-                    Alpha = 0.25f
                 }
             );
 

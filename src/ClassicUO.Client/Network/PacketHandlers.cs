@@ -832,6 +832,10 @@ namespace ClassicUO.Network
                                 p.Position + 2 > p.Length ? (short)0 : (short)p.ReadUInt16BE();
                             world.Player.LowerManaCost =
                                 p.Position + 2 > p.Length ? (short)0 : (short)p.ReadUInt16BE();
+                            
+                            world.Player.HeatTimer = (short)p.ReadUInt16BE();
+                            world.Player.CriminalTimer = (short)p.ReadUInt16BE();
+                            world.Player.BandageTimer = (short)p.ReadUInt16BE();
                         }
                     }
                 }

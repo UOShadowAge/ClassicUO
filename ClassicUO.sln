@@ -9,6 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{FD72
 	ProjectSection(SolutionItems) = preProject
 		scripts\build.cmd = scripts\build.cmd
 		scripts\build.sh = scripts\build.sh
+		scripts\build-naot.sh = scripts\build-naot.sh
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{D5E764E7-2719-4937-AC10-0D2D789A1134}"

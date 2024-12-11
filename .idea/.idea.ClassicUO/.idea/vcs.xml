@@ -2,5 +2,14 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/external/FNA" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/external/FNA/lib/FAudio" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/external/FNA/lib/FNA3D" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/external/FNA/lib/FNA3D/MojoShader" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/external/FNA/lib/FNA3D/Vulkan-Headers" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/external/FNA/lib/SDL2-CS" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/external/FNA/lib/Theorafile" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/external/FileEmbed" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/external/MP3Sharp" vcs="Git" />
   </component>
 </project>

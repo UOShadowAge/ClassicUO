@@ -429,7 +429,7 @@ namespace ClassicUO.Network
 
         public short GetPacketLength(int id)
         {
-            return (short) (id >= 0xFF ? -1 : _packetsTable[id]);
+            return (short) (id > 0xFF ? -1 : _packetsTable[id]);
         }
     }
 }
